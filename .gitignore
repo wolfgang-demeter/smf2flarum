@@ -1,0 +1,5 @@
+composer.phar
+settings.php
+/vendor/
+dump_*
+Readme_JGO.md
