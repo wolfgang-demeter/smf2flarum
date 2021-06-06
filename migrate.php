@@ -2,6 +2,7 @@
 // MIT License
 //
 // Copyright (c) 2017 Sri Harsha Chilakapati
+// Copyright (c) 2021 Wolfgang Demeter
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -52,10 +53,11 @@ try
     // var_dump(json_decode($response->getBody(), true));
 
     // Start the migration process
-    if (confirm("categories")) migrateCategories($smf, $fla, $api);
-    if (confirm("boards"))     migrateBoards($smf, $fla, $api);
-    if (confirm("users"))      migrateUsers($smf, $fla, $api);
-    if (confirm("posts"))      migratePosts($smf, $fla, $api);
+    if (confirm("categories"))  migrateCategories($smf, $fla, $api);
+    if (confirm("boards"))      migrateBoards($smf, $fla, $api);
+    if (confirm("users"))       migrateUsers($smf, $fla, $api);
+    if (confirm("posts"))       migratePosts($smf, $fla, $api);
+    if (confirm("counters"))    updateUserCounters($smf, $fla, $api);
 }
 catch (PDOException $e)
 {
@@ -73,11 +75,11 @@ function migrateCategories($smf, $fla, $api)
     $stmt->setFetchMode(PDO::FETCH_OBJ);
 
     // Delete all existing tags from the Flarum forum and reset the AUTO_INCREMENT count for the table
-    $fla->exec('DELETE FROM `flarumtags`');
-    $fla->exec('ALTER TABLE `flarumtags` AUTO_INCREMENT = 1');
+    $fla->exec('DELETE FROM `tags`');
+    $fla->exec('ALTER TABLE `tags` AUTO_INCREMENT = 1');
 
     // Insert statement to insert the tags into the table
-    $insert = $fla->prepare('INSERT INTO `flarumtags` (name, slug, description, color, position, icon) VALUES (?, ?, ?, ?, ?, ?)');
+    $insert = $fla->prepare('INSERT INTO `tags` (name, slug, description, color, position, icon) VALUES (?, ?, ?, ?, ?, ?)');
 
     // Counters for calculating the percentages
     $total = $smf->query('SELECT COUNT(*) FROM `smf_categories`')->fetchColumn();
@@ -92,69 +94,82 @@ function migrateCategories($smf, $fla, $api)
 
         // Transform the data to new record format
 
+        // ATTENTION: THE FOLLOWING PART IS HIGHLY SPECIFIC TO THE MIGRATED SMF FORUM!!!
         // Colors: https://mycolor.space/?hex=%2300B6FF&sub=1
         // DVDnarr red #b83a17
         switch ($row->ID_CAT) {
             case 6:
-                $catColor = '#394955';
+                // $catColor = '#394955';
+                $catColor = '#636363';
                 $catDesc = 'Ankündigungen, Hinweise & Tipps rund ums Forum';
                 $catOrder = 0;
-                $catIcon = 'fas fa-comment-dots';
+                // $catIcon = 'fas fa-comment-dots';
+                $catIcon = 'fas fa-info-circle';
                 break;
             case 4:
                 // $catName = 'DVD, Blu-ray & 4K';
                 $catColor = '#00b6ff';
-                $catDesc = 'News & Infos zu allem rund um DVD, Blu-ray und Ultra-HD Blu-ray.';
+                $catDesc = 'News & Infos zu Allem rund um DVD, Blu-ray und Ultra-HD Blu-ray.';
                 $catOrder = 1;
                 $catIcon = 'fas fa-compact-disc';
                 break;
             case 1:
                 // $catName = 'Kino & TV';
+                $catName = 'Kino, Streaming & TV';
                 // $catColor = '#0091d7';
-                $catColor = '#394955';
-                $catDesc = 'News, Berichte und allgemeines Gequassel über Filme und die Leute, die sie machen.';
+                // $catColor = '#394955';
+                $catColor = '#4f4789';
+                $catDesc = 'News, Berichte und allgemeines Gequassel über Filme & Serien sowie die Leute, die sie machen.';
                 $catOrder = 2;
                 $catIcon = 'fas fa-ticket-alt';
                 break;
             case 9:
+                // $catName = 'Reviews';
                 // $catColor = '#006db0';
-                $catColor = '#1d5fb5';
-                $catDesc = 'Besprechungen und Diskussionen über Filme und Serien sowie kurze Reviews.';
+                // $catColor = '#1d5fb5';
+                $catColor = '#5b3758';
+                $catDesc = 'Besprechungen und Diskussionen über Filme & Serien sowie kurze Reviews.';
                 $catOrder = 3;
-                $catIcon = 'fas fa-file-alt';
+                $catIcon = 'fas fa-film';
                 break;
             case 7:
                 // $catName = 'Hardware & Heimkino';
                 // $catColor = '#004c8a';
-                $catColor = '#21569c';
-                $catDesc = 'Alles rund um Player, Verstärker, Lautsprecher und das eigene Heimkino.';
+                // $catColor = '#21569c';
+                $catColor = '#201335';
+                $catDesc = 'Alles rund um Player, Verstärker, Lautsprecher, Streaming-Anbieter und das eigene Heimkino.';
                 $catOrder = 4;
-                $catIcon = 'fas fa-tv';
+                $catIcon = 'fas fa-video';
                 break;
             case 5:
                 // $catName = 'Off-topic';
-                $catColor = '#002d66';
+                // $catColor = '#002d66';
+                $catColor = '#4c4c4c';
                 $catDesc = 'Abseits von bewegten Bildern!';
                 $catOrder = 5;
                 $catIcon = 'fas fa-quote-right';
                 break;
             case 8:
                 // $catColor = '#41efb5';
-                $catColor = '#006b61';
-                $catDesc = 'Schnäppchen & private Angebote sowie Gesuche.';
+                // $catColor = '#006b61';
+                $catColor = '#636363';
+                $catDesc = 'Deals, Schnäppchen und Kaufempfehlungen sowie private Angebote & Gesuche.';
                 $catOrder = 6;
-                $catIcon = 'fas fa-shopping-bag';
+                $catIcon = 'fas fa-search-dollar';
                 break;
             case 3:
                 // $catName = 'Mods & Admin';
                 // $catColor = '#b7548e';
-                $catColor = '#ff0037';
+                // $catColor = '#ff0037';
+                // $catColor = '#f86961';
+                $catColor = '#e74c3c';
                 $catDesc = 'Nur für Mods & Admins sichtbar!';
                 $catOrder = 7;
                 $catIcon = 'fas fa-user-lock';
                 break;
             default:
-                $catColor = '#cccccc';
+                // $catColor = '#cccccc';
+                $catColor = '#4c4c4c';
                 $catDesc = '';
                 $catOrder = $row->catOrder;
                 $catIcon = '';
@@ -185,7 +200,7 @@ function migrateBoards($smf, $fla, $api)
 {
     // Create a helper table for all the boards, which stores the SMF board ids with the Flarum equivalents
     $sql = <<<SQL
-        CREATE TABLE IF NOT EXISTS `migrated_boards` (
+        CREATE TABLE IF NOT EXISTS `flarum_migrated_boards` (
             smf_board_id INT(10),
             smf_category_id INT(10),
             fla_tag_id INT(10),
@@ -193,10 +208,10 @@ function migrateBoards($smf, $fla, $api)
         );
 SQL;
     $smf->exec($sql);
-    $smf->exec('TRUNCATE TABLE `migrated_boards`');
+    $smf->exec('TRUNCATE TABLE `flarum_migrated_boards`');
 
     // Statement to insert the migrated boards id into the helper table
-    $sql = "INSERT INTO `migrated_boards` (smf_board_id, smf_category_id, fla_tag_id, fla_tag_parent_id) VALUES (:smf_board_id, :smf_category_id, :fla_tag_id, :fla_tag_parent_id);";
+    $sql = "INSERT INTO `flarum_migrated_boards` (smf_board_id, smf_category_id, fla_tag_id, fla_tag_parent_id) VALUES (:smf_board_id, :smf_category_id, :fla_tag_id, :fla_tag_parent_id);";
     $insert_mb = $smf->prepare($sql);
 
     // The query to find all the boards in the SMF forum
@@ -206,12 +221,11 @@ SQL;
         LEFT JOIN smf_categories ON smf_boards.ID_CAT=smf_categories.ID_CAT
         ORDER BY smf_boards.ID_PARENT, smf_boards.boardOrder;
 SQL;
-
     $stmt = $smf->query($sql);
     $stmt->setFetchMode(PDO::FETCH_OBJ);
 
     // The query to insert the new transformed tags
-    $insert = $fla->prepare('INSERT INTO `flarumtags` (name, slug, description, color, position, parent_id, icon) VALUES (?, ?, ?, ?, ?, ?, ?)');
+    $insert = $fla->prepare('INSERT INTO `tags` (name, slug, description, color, position, parent_id, icon) VALUES (?, ?, ?, ?, ?, ?, ?)');
 
     // Counters to display the progress info
     $total = $smf->query('SELECT COUNT(*) FROM `smf_boards`')->fetchColumn();
@@ -226,7 +240,7 @@ SQL;
         // childLevel is 0 for first hand boards
         if ($row->childLevel === "0") {
             // Get the category it is associated to, to set the parent relationship
-            $stmt2 = $fla->query('SELECT * FROM `flarumtags` WHERE slug=\'' . slugify($row->cname) . '\'');
+            $stmt2 = $fla->query('SELECT * FROM `tags` WHERE slug=\'' . slugify($row->cname) . '\'');
             $stmt2->setFetchMode(PDO::FETCH_OBJ);
             $row2 = $stmt2->fetch();
 
@@ -273,36 +287,36 @@ SQL;
 
 /**
  * Function to migrate the users from the SMF forum to the new Flarum backend. This function is also responsible to translate
- * the member groups from the old forum to the new forum and associate them in the new forum. However the post stats and
- * the profile picture is not migrated. The users will also be migrated without a password, and hence they are required to
+ * the member groups from the old forum to the new forum and associate them in the new forum. However the post stats
+ * are not migrated. The users will also be migrated without a password, and hence they are required to
  * click on the forgot password link and generate a new password.
  */
 function migrateUsers($smf, $fla, $api)
 {
     // Clear existing users from the forum except for the admin account created while installing Flarum.
     // Also reset the AUTO_INCREMENT values for the tables.
-    $fla->exec('DELETE FROM `flarumusers` WHERE id != 1');
-    $fla->exec('ALTER TABLE `flarumusers` AUTO_INCREMENT = 2');
-    $fla->exec('DELETE FROM `flarumgroup_user` WHERE user_id != 1');
-    $fla->exec('ALTER TABLE `flarumgroup_user` AUTO_INCREMENT = 2');
+    $fla->exec('DELETE FROM `users` WHERE id != 1');
+    $fla->exec('ALTER TABLE `users` AUTO_INCREMENT = 2');
+    $fla->exec('DELETE FROM `group_user` WHERE user_id != 1');
+    $fla->exec('ALTER TABLE `group_user` AUTO_INCREMENT = 2');
 
     // Create a helper table for all the users, which stores the SMF user ids with the Flarum equivalents
     $sql = <<<SQL
-        CREATE TABLE IF NOT EXISTS `migrated_users` (
+        CREATE TABLE IF NOT EXISTS `flarum_migrated_users` (
             smf_id INT(10),
             fla_id INT(10)
         );
 SQL;
     $smf->exec($sql);
-    $smf->exec('TRUNCATE TABLE `migrated_users`');
+    $smf->exec('TRUNCATE TABLE `flarum_migrated_users`');
 
     // Statement to insert the migrated user id into the helper table
-    $sql = "INSERT INTO `migrated_users` (smf_id, fla_id) VALUES (?, ?);";
+    $sql = "INSERT INTO `flarum_migrated_users` (smf_id, fla_id) VALUES (?, ?);";
     $insert_helper = $smf->prepare($sql);
 
     // The query to select the existing users from the SMF backend
     $sql = <<<SQL
-        SELECT ID_MEMBER, memberName, emailAddress, dateRegistered, lastLogin, personalText, is_activated, ID_GROUP
+        SELECT ID_MEMBER, memberName, realName, emailAddress, dateRegistered, lastLogin, userTitle, personalText, location, is_activated, ID_GROUP, websiteTitle, websiteUrl
         FROM `smf_members` ORDER BY ID_MEMBER ASC
 SQL;
     $stmt = $smf->query($sql);
@@ -314,14 +328,15 @@ SQL;
 
     // The query to insert the new users into the Flarum database
     $sql = <<<SQL
-        INSERT INTO `flarumusers` (id, username, email, is_email_confirmed, password, bio, joined_at, last_seen_at)
+    INSERT INTO `users` (id, username, nickname, email, is_email_confirmed, password, bio, joined_at, last_seen_at, marked_all_as_read_at, social_buttons)
         VALUES (
-            ?, ?, ?, ?, '', ?, ?, ?
+            ?, ?, ?, ?, ?, '', ?, ?, ?, ?, ?
         );
 SQL;
     $insert = $fla->prepare($sql);
-    $insert2 = $fla->prepare('INSERT INTO `flarumgroup_user` (user_id, group_id) VALUES (?, ?)');
+    $insert2 = $fla->prepare('INSERT INTO `group_user` (user_id, group_id) VALUES (?, ?)');
 
+    // ATTENTION: THE FOLLOWING PART IS HIGHLY SPECIFIC TO THE MIGRATED SMF FORUM!!!
     // The groupMap. It is a mapping from the SMF member groups to the Flarum groups. The following are present in the
     // original SMF backend.
     //
@@ -386,17 +401,28 @@ SQL;
         echo "Migrating users: " . $done . "/" . $total . " (" . ((int) ($done / $total * 100)) . "%)\r";
 
         // use original SMF Member ID
+        // ATTENTION: THIS IS A PROBLEM IF YOU HAVE A SMF USER WITH ID 1 AND YOU KEEP YOUR FLARUM ADMIN USER WITH ID 1!!!
         $userId = $row->ID_MEMBER;
 
+        // add various fields to bio (https://discuss.flarum.org/d/17775-friendsofflarum-user-bio)
+        $bio = array();
+        if ($row->userTitle !== "") { $bio[] = $row->userTitle; }
+        if ($row->location !== "") { $bio[] = $row->location; }
+        if ($row->personalText !== "") { $bio[] = $row->personalText; }
+
         // Transform the user to the Flarum table
+        // websiteUrl is converted to Social Profile (https://discuss.flarum.org/d/18775-friendsofflarum-social-profile)
         $data = array(
             $userId,
             $row->memberName,
+            $row->realName,
             $row->emailAddress === "" ? "email-user-id-" . $row->ID_MEMBER . "@example.com" : $row->emailAddress,
             $row->is_activated !== "0" ? 1 : 0,
-            $row->personalText,
+            replaceBodyStrings(implode(' // ', $bio)),
             convertTimestamp($row->dateRegistered),
-            convertTimestamp($row->lastLogin)
+            convertTimestamp($row->lastLogin),
+            convertTimestamp($row->lastLogin),
+            $row->websiteUrl !== "" ? '[{"title":"' . ($row->websiteTitle !== "" ? $row->websiteTitle : $row->websiteUrl) . '","url":"' . $row->websiteUrl . '","icon":"fas fa-globe","favicon":"none"}]' : NULL
         );
 
         try
@@ -440,11 +466,11 @@ SQL;
         // Avatar
         $avatar = array();
         $avatar = $smf->query('SELECT * FROM `smf_attachments` WHERE ID_MEMBER = '.$userId)->fetchAll();
+        // Buggy Avatar Picture for SMF user with id 739
         if (count($avatar) > 0 && $userId != 739) {
             // echo $userId."\n";
             // var_dump($avatar);
-            // echo "https://www.dvdnarr.com/community/index.php?action=dlattach;attach=".$avatar[0]['ID_ATTACH'].";type=avatar \n";
-            $avatarUrl = smf_url."community/index.php?action=dlattach;attach=".$avatar[0]['ID_ATTACH'].";type=avatar";
+            $avatarUrl = smf_url."index.php?action=dlattach;attach=".$avatar[0]['ID_ATTACH'].";type=avatar";
 
             if (file_put_contents('/tmp/avatarmigration', fopen($avatarUrl, 'r'))) {
                 $response = $api->request(
@@ -473,20 +499,41 @@ SQL;
 }
 
 /**
+ * Update the discussion and post counters for all users
+ */
+function updateUserCounters($smf, $fla, $api)
+{
+    $users = $fla->query("SELECT id FROM users ORDER BY id ASC");
+    $users->setFetchMode(PDO::FETCH_OBJ);
+
+    while ($user = $users->fetch()) {
+        echo "Update discussion & post counter for user wit ID " . $user->id . "\r";
+
+        $discussion_count = $fla->query("SELECT COUNT(*) FROM discussions WHERE user_id = '$user->id'")->fetchColumn();
+        $post_count = $fla->query("SELECT COUNT(*) FROM posts WHERE user_id = '$user->id' AND type = 'comment'")->fetchColumn();
+
+        $fla->query("UPDATE users SET discussion_count = '$discussion_count', comment_count = '$post_count' WHERE id = '$user->id'");
+    }
+
+    echo "\n";
+}
+
+
+/**
  * Function to migrate the posts from the SMF backend to the new Flarum backend. Uses the default bundle to transform
  * the posts data from BBCode into the data format of Flarum.
  */
 function migratePosts($smf, $fla, $api)
 {
     // Clear existing posts from the forum. Also reset the AUTO_INCREMENT values for the tables.
-    $fla->exec('DELETE FROM `flarumposts`');
-    $fla->exec('ALTER TABLE `flarumposts` AUTO_INCREMENT = 1');
-    $fla->exec('DELETE FROM `flarumdiscussions`');
-    $fla->exec('ALTER TABLE `flarumdiscussions` AUTO_INCREMENT = 1');
-    $fla->exec('DELETE FROM `flarumdiscussion_tag`');
-    $fla->exec('ALTER TABLE `flarumdiscussion_tag` AUTO_INCREMENT = 1');
+    $fla->exec('DELETE FROM `posts`');
+    $fla->exec('ALTER TABLE `posts` AUTO_INCREMENT = 1');
+    $fla->exec('DELETE FROM `discussions`');
+    $fla->exec('ALTER TABLE `discussions` AUTO_INCREMENT = 1');
+    $fla->exec('DELETE FROM `discussion_tag`');
+    $fla->exec('ALTER TABLE `discussion_tag` AUTO_INCREMENT = 1');
 
-    // SQL query to fetch the topics from the JGO database
+    // SQL query to fetch the topics from the SMF database
     $sql = <<<SQL
         SELECT
             t.ID_TOPIC, t.ID_MEMBER_STARTED, t.ID_BOARD, m.subject, m.posterTime, m.posterName, t.numReplies, t.locked, t.isSticky,
@@ -496,7 +543,12 @@ function migratePosts($smf, $fla, $api)
         LEFT JOIN
             `smf_messages` m ON t.ID_FIRST_MSG = m.ID_MSG
         LEFT JOIN
-            `migrated_users` u ON t.ID_MEMBER_STARTED = u.smf_id
+            `flarum_migrated_users` u ON t.ID_MEMBER_STARTED = u.smf_id
+        -- WHERE t.ID_TOPIC in (228,471,499,1039,1687,1693,9855,15626,17729,26865,27624,27647,27603,27823)
+        WHERE t.ID_TOPIC > 27000 OR t.ID_TOPIC in (228,471,499,1039,1687,1693,6519,9855,15626,17143,17729,26266,26865,26944,26962,27624,27647,27603,27823)
+        -- WHERE t.ID_TOPIC in (27647)
+        -- WHERE t.ID_TOPIC in (228,9855,26266,26944,26962)
+        -- WHERE t.ID_TOPIC >= 27000
         ORDER BY m.posterTime, t.ID_TOPIC
 SQL;
     $topics = $smf->query($sql);
@@ -508,7 +560,7 @@ SQL;
 
     // SQL statement to insert the topic into the Flarum backend
     $sql = <<<SQL
-        INSERT INTO `flarumdiscussions` (
+        INSERT INTO `discussions` (
             id, title, comment_count, post_number_index, created_at, user_id, slug, is_locked, is_sticky
         ) VALUES (
             :id, :title, :comment_count, :post_number_index, :created_at, :user_id, :slug, :is_locked, :is_sticky
@@ -518,7 +570,7 @@ SQL;
 
     // SQL statement to update the topic into the Flarum backend
     $sql = <<<SQL
-        UPDATE `flarumdiscussions` SET
+        UPDATE `discussions` SET
             participant_count = :participant_count,
             first_post_id = :first_post_id,
             last_post_id = :last_post_id,
@@ -531,31 +583,31 @@ SQL;
 
     // SQL statement to bind discussion to tag
     $sql = <<<SQL
-        INSERT INTO `flarumdiscussion_tag` (`discussion_id`, `tag_id`) VALUES (:discussion_id, :tag_id);
+        INSERT INTO `discussion_tag` (`discussion_id`, `tag_id`) VALUES (:discussion_id, :tag_id);
 SQL;
     $insert_discussion_tag = $fla->prepare($sql);
 
     // // Mapping Array from SMF Category id to Flarum Tag id
     $map_category_tag = array();
-    $migrated_boards = $smf->query('SELECT * FROM `migrated_boards`');
-    $migrated_boards->setFetchMode(PDO::FETCH_OBJ);
-    while ($migrated_board = $migrated_boards->fetch()) {
+    $flarum_migrated_boards = $smf->query('SELECT * FROM `flarum_migrated_boards`');
+    $flarum_migrated_boards->setFetchMode(PDO::FETCH_OBJ);
+    while ($migrated_board = $flarum_migrated_boards->fetch()) {
         $map_category_tag[$migrated_board->fla_tag_id] = $migrated_board->fla_tag_parent_id;
     }
     // var_dump($map_category_tag);
 
     // Mapping Array from SMF Board id to Flarum Tag id
     $map_board_tag = array();
-    $migrated_boards = $smf->query('SELECT * FROM `migrated_boards`');
-    $migrated_boards->setFetchMode(PDO::FETCH_OBJ);
-    while ($migrated_board = $migrated_boards->fetch()) {
+    $flarum_migrated_boards = $smf->query('SELECT * FROM `flarum_migrated_boards`');
+    $flarum_migrated_boards->setFetchMode(PDO::FETCH_OBJ);
+    while ($migrated_board = $flarum_migrated_boards->fetch()) {
         $map_board_tag[$migrated_board->smf_board_id] = $migrated_board->fla_tag_id;
     }
     // var_dump($map_board_tag);
 
     // SQL statement to insert the post into the Flarum backend
     $sql = <<<SQL
-        INSERT INTO `flarumposts` (
+        INSERT INTO `posts` (
             `id`, `discussion_id`, `type`, `number`, `created_at`, `user_id`, `content`
         ) VALUES (
             :id, :discussion_id, 'comment', :number, :created_at, :user_id, :content
@@ -563,30 +615,20 @@ SQL;
 SQL;
     $insert_post = $fla->prepare($sql);
 
-    // preg_replace("/&quot;/", '"', $topic->subject)
-    // preg_replace('(\\&amp;)', '&', $row->bname)
-    $search = array();
-    $search[0] = '/&quot;/';
-    $search[1] = '/&amp;/';
-    $replace = array();
-    $replace[0] = '"';
-    $replace[1] = '&';
-
     // Migrate Topics
     while ($topic = $topics->fetch()) {
         // Update and display the progess info
         $done++;
         echo "\033[2K\r"; // clear line
-        echo "Migrating topic " . $done . "/" . $total . " (" . ((int) ($done / $total * 100)) . "%) // ID: ". $topic->ID_TOPIC . " Posts: " . ($topic->numReplies + 1) . " Slug: " . slugify($topic->subject) . "\r";
+        echo "Migrating topic " . $done . "/" . $total . " (" . ((int) ($done / $total * 100)) . "%) // Topic ID: ". $topic->ID_TOPIC . " // number of Posts: " . ($topic->numReplies + 1) . " // Slug: " . slugify($topic->subject) . "\r";
 
         $sql = <<<SQL
             SELECT m.ID_MSG, m.body, m.posterTime, u.fla_id
             FROM `smf_messages` m
-            LEFT JOIN `migrated_users` u ON m.ID_MEMBER = u.smf_id
+            LEFT JOIN `flarum_migrated_users` u ON m.ID_MEMBER = u.smf_id
             WHERE m.ID_TOPIC = {$topic->ID_TOPIC}
             ORDER BY m.posterTime
 SQL;
-
         $posts = $smf->query($sql);
         $posts->setFetchMode(PDO::FETCH_OBJ);
 
@@ -597,7 +639,7 @@ SQL;
 
         $data = array(
             ':id' => $topic->ID_TOPIC,
-            ':title' => preg_replace($search, $replace, $topic->subject),
+            ':title' => replaceBodyStrings($topic->subject, false),
             ':comment_count' => $topic->numReplies,
             ':post_number_index' => $topic->numReplies + 1,
             ':created_at' => convertTimestamp($topic->posterTime),
@@ -609,7 +651,7 @@ SQL;
         $insert_topic->execute($data);
         // $insert_topic->debugDumpParams();
 
-        // Tie discussion to tagS
+        // Tie discussion to tags
         // former category
         $insert_discussion_tag->execute(array(':discussion_id' => $topic->ID_TOPIC, ':tag_id' => $map_category_tag[$map_board_tag[$topic->ID_BOARD]]));
         // former board
@@ -653,10 +695,10 @@ SQL;
         // $update_topic->debugDumpParams();
 
         // Limit Migration for Testing
-        if ($topic->ID_TOPIC >= 500) {
-            echo "\n";
-            return;
-        }
+        // if ($topic->ID_TOPIC >= 500) {
+        //     echo "\n";
+        //     return;
+        // }
     }
 
     echo "\n";
@@ -665,15 +707,127 @@ SQL;
 /**
  * Utility function to replace some characters prior to storing in Flarum.
  */
-function replaceBodyStrings($str)
+function replaceBodyStrings($str, $replaceSmileys = true)
 {
+    // Line-Breaks
     $str = preg_replace("/\<br\>/", "\n", $str);
     $str = preg_replace("/\<br\s*\/\>/", "\n", $str);
+
+    // HTML Entities
     $str = preg_replace("/&nbsp;/", " ", $str);
+    $str = preg_replace("/&amp;/", "&", $str);
     $str = preg_replace("/&quot;/", "\"", $str);
     $str = preg_replace("/&lt;/", "<", $str);
     $str = preg_replace("/&gt;/", ">", $str);
-    return preg_replace("/\[quote\][\s\t\r\n]*\[\/quote\]/", "", $str);
+    $str = preg_replace("/&#039;/", "'", $str);
+    $str = preg_replace("/&#8364;/", "€", $str);
+
+    // BBCode
+    // https://www.phpliveregex.com/#tab-preg-replace
+    // $str = preg_replace("/\[size=([0-9]*)(.*)\](.*)\[\/size\]/", "[size=$1]$3[/size]", $str);
+    // $str = preg_replace("/\[size=([0-9]*)([a-zA-Z]*)\]/", "[size=$1]", $str);
+    // [size] 1. resize from old 11px base font-size to new 16px and use 75% of it to be less dominant
+    // [size] 2. recalculate pt to px
+    $str = preg_replace_callback("/\[size=([0-9]*)([a-zA-Z]*)\]/", function ($match) { return "[size=".($match[1] == 'px' ? round(intval($match[1])*16/11*0.75) : round((intval($match[1])*16/11)*96/72))."]"; }, $str);
+    $str = preg_replace("/\[size=([0-9]*)([a-zA-Z]*)\]/", "[size=$1]", $str);
+    $str = preg_replace("/\[quote\][\s\t\r\n]*\[\/quote\]/", "", $str);
+    $str = preg_replace("/\[me=(.*)\](.*)\[\/me\]/U", "\n[i][color=grey]* $1 $2[/color][/i]", $str);
+    $str = preg_replace("/\[youtube\]http[s]:\/\/(.*)\[\/youtube\]/", "https://$1", $str);
+
+    // ATTENTION: THE FOLLOWING PART IS HIGHLY SPECIFIC TO THE MIGRATED SMF FORUM!!!
+    // Emojis and Smileys (as configured in SMF)
+    if ($replaceSmileys) {
+        $str = preg_replace("/(\s|^)8\)(\s|$)/", " 😎", $str); // 8) only with leading and trailing whitespace; otherwise text like "Drunken Master (1978)" will have an Emoji!
+        $str = preg_replace("/8-\)/", "😎", $str);
+        $str = preg_replace("/:\(/", "🙁", $str);
+        $str = preg_replace("/:\)/", "😀", $str);
+        $str = preg_replace("/:-\(/", "🙁", $str);
+        $str = preg_replace("/:-\)/", "😀", $str);
+        $str = preg_replace("/:-\?/", "🤨", $str);
+        $str = preg_replace("/:-D/", "😁", $str);
+        $str = preg_replace("/:-o/", "😆", $str);
+        $str = preg_replace("/:-P/", "😛", $str);
+        $str = preg_replace("/:-x/", "😖", $str);
+        $str = preg_replace("/:-\|/", "😐", $str);
+        $str = preg_replace("/:0narr:/", "[b]0/10[/b]", $str);
+        $str = preg_replace("/:1narr:/", "[b]2/10[/b]", $str);
+        $str = preg_replace("/:2narr:/", "[b]4/10[/b]", $str);
+        $str = preg_replace("/:3narr:/", "[b]6/10[/b]", $str);
+        $str = preg_replace("/:4narr:/", "[b]8/10[/b]", $str);
+        $str = preg_replace("/:5narr:/", "[b]10/10[/b]", $str);
+        $str = preg_replace("/:\?/", "🤨", $str);
+        $str = preg_replace("/:\?\?\?:/", "🤨", $str);
+        $str = preg_replace("/:aufgeregt:/", "🤩", $str); // maybe
+        $str = preg_replace("/:brav:/", "🥳", $str); // maybe
+        $str = preg_replace("/:breakdance:/", "💃", $str);
+        $str = preg_replace("/:ciao:/", "🏃‍♂️", $str);
+        $str = preg_replace("/:cool:/", "😎", $str);
+        $str = preg_replace("/:cry:/", "😥", $str);
+        $str = preg_replace("/:D/", "😁", $str);
+        $str = preg_replace("/:daumen:/", "👍", $str);
+        $str = preg_replace("/:daumenhoch:/", "👍", $str);
+        $str = preg_replace("/:deal:/", "📜", $str); // maybe
+        $str = preg_replace("/:doof:/", "🙈", $str); // maybe
+        $str = preg_replace("/:eek:/", "😆", $str);
+        $str = preg_replace("/:evil:/", "😠", $str);
+        $str = preg_replace("/:evilnarr:/", "😠", $str);
+        $str = preg_replace("/:grin:/", "😁", $str);
+        $str = preg_replace("/:grrr:/", "😤", $str);
+        $str = preg_replace("/:headbang:/", "😂", $str);
+        // $str = preg_replace("/:ignore:/", "🥱", $str); // maybe
+        $str = preg_replace("/:ignore:/", "🤷🏻", $str); // maybe
+        $str = preg_replace("/:king:/", "👑", $str);
+        $str = preg_replace("/:kotz:/", "🤮", $str);
+        $str = preg_replace("/:kratz:/", "🤔", $str);
+        $str = preg_replace("/:lol:/", "😁", $str);
+        $str = preg_replace("/:love:/", "😍", $str);
+        $str = preg_replace("/:mad:/", "😖", $str);
+        $str = preg_replace("/:megaschock:/", "😱", $str);
+        $str = preg_replace("/:motz:/", "🤬", $str);
+        $str = preg_replace("/:mrgreen:/", "😂", $str); // maybe
+        $str = preg_replace("/:narr0:/", "[b]0/10[/b]", $str);
+        $str = preg_replace("/:narr10:/", "[b]10/10[/b]", $str);
+        $str = preg_replace("/:narr1:/", "[b]1/10[/b]", $str);
+        $str = preg_replace("/:narr2:/", "[b]2/10[/b]", $str);
+        $str = preg_replace("/:narr3:/", "[b]3/10[/b]", $str);
+        $str = preg_replace("/:narr4:/", "[b]4/10[/b]", $str);
+        $str = preg_replace("/:narr5:/", "[b]5/10[/b]", $str);
+        $str = preg_replace("/:narr6:/", "[b]6/10[/b]", $str);
+        $str = preg_replace("/:narr7:/", "[b]7/10[/b]", $str);
+        $str = preg_replace("/:narr8:/", "[b]8/10[/b]", $str);
+        $str = preg_replace("/:narr9:/", "[b]9/10[/b]", $str);
+        $str = preg_replace("/:narrentip:/", "[b]NarrenTipp[/b]🏆🏅", $str);
+        $str = preg_replace("/:neutral:/", "😐", $str);
+        $str = preg_replace("/:o(\s|$)/", "😆 ", $str); // only with trailing whitespace or eol
+        $str = preg_replace("/:oops:/", "☺", $str);
+        $str = preg_replace("/:P(\s|$)/", "😛 ", $str); // only with trailing whitespace or eol
+        $str = preg_replace("/:prost:/", "🍻", $str);
+        $str = preg_replace("/:razz:/", "😛", $str);
+        // $str = preg_replace("/:respekt:/", "🤩", $str); // maybe
+        $str = preg_replace("/:respekt:/", "🖖", $str); // maybe
+        $str = preg_replace("/:roll:/", "🙄", $str);
+        $str = preg_replace("/:rotfl:/", "🤣", $str);
+        $str = preg_replace("/:sad:/", "🙁", $str);
+        $str = preg_replace("/:schlau:/", "☝️", $str); // maybe
+        $str = preg_replace("/:shock:/", "😲", $str);
+        $str = preg_replace("/:smile:/", "😀", $str);
+        $str = preg_replace("/:spam:/", "[b]Spam[/b]😣", $str);
+        $str = preg_replace("/:stirnklatsch:/", "🤦‍♂️", $str);
+        $str = preg_replace("/:tip:/", "[b]Tipp[/b]🏆🏅", $str);
+        $str = preg_replace("/:twisted:/", "👹", $str);
+        $str = preg_replace("/:uglyhammer:/", "🤣🤣🤣", $str);
+        $str = preg_replace("/:vader:/", "🦹", $str); // maybe
+        $str = preg_replace("/:verneig:/", "🙇", $str);
+        $str = preg_replace("/:wall:/", "🤦‍♂️", $str);
+        $str = preg_replace("/:wink:/", "😉", $str);
+        $str = preg_replace("/:x/", "😖", $str);
+        $str = preg_replace("/:zzzz:/", "😴", $str);
+        $str = preg_replace("/:\|/", "😐", $str);
+        $str = preg_replace("/;\)/", "😉", $str);
+        $str = preg_replace("/;-\)/", "😉", $str);
+    }
+
+    return $str;
 }
 
 /**
@@ -723,7 +877,7 @@ function slugify($text)
 //     // lowercase
 //     $text = strtolower($text);
 
-      ///////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////
     // // entfernt HTML und PHP Tags aus der URL,falls es solche gibt
     $text = strip_tags($text);
 
@@ -757,8 +911,9 @@ function slugify($text)
     ///////////////////////////////////////////////////////////////////////
     // echo $text."\n";
 
-    if (empty($text))
+    if (empty($text)) {
         return 'n-a';
+    }
 
     return $text;
 }
@@ -771,6 +926,30 @@ function convertTimestamp($unixTimestamp) {
     $dt->setTimestamp($unixTimestamp);
     $dt->setTimeZone(new DateTimeZone('UTC'));
     return $dt->format('Y-m-d\TH:i:s');
+}
+
+/**
+ * Convert old internal SMF URLs to new Flarum URLs
+ */
+function convertInternalLinks($text,$post_counter)
+{
+    $discussion_id = 0;
+    $post_id = 0;
+    $replacements = 0;
+
+    // Example: http://www.smf2forum.bla/index.php?topic=25645.msg276350#msg276350
+    // Regular expression - www.forum.bla is of course a totally made up name. Substitute it with your site URL
+    $regexp = '/https?:\/\/www\.dvdnarr\.com\/community\/index.php\?(topic=(\d+))+(\.msg(\d+))+(\#msg\d+)/is';
+
+    // There are no internal links in this post, return it as it was
+    $results = preg_match_all($regexp,$text,$matches);
+    if (!$results) return $text;
+
+    // Do the actual replacement using rhe regular expression
+    // As before www.forum.bla is totally made up. Substitute it with your site URL.
+    // It might still be the smf2 website name, or something new.
+    $text = preg_replace($regexp,"http://dev.dvdnarr.com/d/$2/$post_counter",$text);
+    return $text;
 }
 
 /**

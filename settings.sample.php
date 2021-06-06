@@ -2,6 +2,7 @@
 // MIT License
 //
 // Copyright (c) 2017 Sri Harsha Chilakapati
+// Copyright (c) 2021 Wolfgang Demeter
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -21,10 +22,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-define('smf_dbname', 'jgodump');
-define('fla_dbname', 'jgoflarum');
+// SMF source database
+define('smf_dbname', 'smfdb');
+define('smf_user', 'smfuser');
+define('smf_pass', 'smfpass');
 
-define('smf_user', 'uname');
-define('smf_pass', 'passwd');
-define('fla_user', 'uname');
-define('fla_pass', 'passwd');
+// Flarum target database
+define('fla_dbname', 'flarumdb');
+define('fla_user', 'flarumuser');
+define('fla_pass', 'flarumpass');
+
+// SMF source URL (to get avatars and such)
+define('smf_url', 'https://example.com/');
+
+// Flarum API credentials
+define('fla_api_url', 'https://example.org/api/');
+define('fla_api_token', 'flarum-api-token; userId=1');
