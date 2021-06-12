@@ -7,9 +7,9 @@ This script is based on https://github.com/sriharshachilakapati/JGO-Flarum-Migra
 
 ### Required Extension
 #### User Bio by FriendsOfFlarum
-Some user information from SMF will be stored as biography
+Some user information from SMF will be stored as biography.
 https://discuss.flarum.org/d/17775-friendsofflarum-user-bio
 
 #### Social Profile by FriendsOfFlarum
-The user website from SMF will be stored in the Social Profile extension
+The user website from SMF will be stored in the Social Profile extension.
 https://discuss.flarum.org/d/18775-friendsofflarum-social-profile

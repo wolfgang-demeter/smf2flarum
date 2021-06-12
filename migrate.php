@@ -316,7 +316,7 @@ SQL;
 
     // The query to select the existing users from the SMF backend
     $sql = <<<SQL
-        SELECT ID_MEMBER, memberName, realName, emailAddress, dateRegistered, lastLogin, userTitle, personalText, location, is_activated, ID_GROUP, websiteTitle, websiteUrl
+        SELECT ID_MEMBER, memberName, realName, emailAddress, dateRegistered, lastLogin, userTitle, personalText, location, is_activated, ID_GROUP, websiteTitle, websiteUrl, birthdate
         FROM `smf_members` ORDER BY ID_MEMBER ASC
 SQL;
     $stmt = $smf->query($sql);
@@ -391,6 +391,7 @@ SQL;
         17 => 3
     );
 
+    // If you don't want or can't user your original SMF member IDs!
     // $userId = 2;
 
     // For each user in the SMF database
@@ -409,6 +410,7 @@ SQL;
         if ($row->userTitle !== "") { $bio[] = $row->userTitle; }
         if ($row->location !== "") { $bio[] = $row->location; }
         if ($row->personalText !== "") { $bio[] = $row->personalText; }
+        if ($row->birthdate !== "0001-01-01" && substr($row->birthdate, 0, 3) !== "000") { $bio[] = 'geboren am '.substr($row->birthdate, 8, 2).'.'.substr($row->birthdate, 5, 2).'.'.substr($row->birthdate, 0, 4); }
 
         // Transform the user to the Flarum table
         // websiteUrl is converted to Social Profile (https://discuss.flarum.org/d/18775-friendsofflarum-social-profile)
@@ -544,11 +546,12 @@ function migratePosts($smf, $fla, $api)
             `smf_messages` m ON t.ID_FIRST_MSG = m.ID_MSG
         LEFT JOIN
             `flarum_migrated_users` u ON t.ID_MEMBER_STARTED = u.smf_id
-        -- WHERE t.ID_TOPIC in (228,471,499,1039,1687,1693,9855,15626,17729,26865,27624,27647,27603,27823)
-        WHERE t.ID_TOPIC > 27000 OR t.ID_TOPIC in (228,471,499,1039,1687,1693,6519,9855,15626,17143,17729,26266,26865,26944,26962,27624,27647,27603,27823)
-        -- WHERE t.ID_TOPIC in (27647)
-        -- WHERE t.ID_TOPIC in (228,9855,26266,26944,26962)
-        -- WHERE t.ID_TOPIC >= 27000
+        WHERE t.ID_BOARD != 35 -- do not migrate content of board "Papierkorb" (Recycle Bin)
+        -- AND t.ID_TOPIC in (228,471,499,1039,1687,1693,9855,15626,17729,26865,27624,27647,27603,27823)
+        -- AND t.ID_TOPIC > 27000 OR t.ID_TOPIC in (228,471,499,1039,1687,1693,6519,9855,15626,17143,17729,26266,26865,26944,26962,27624,27647,27603,27823)
+        -- AND t.ID_TOPIC in (27647)
+        -- AND t.ID_TOPIC in (228,9855,26266,26944,26962)
+        -- AND t.ID_TOPIC >= 27000
         ORDER BY m.posterTime, t.ID_TOPIC
 SQL;
     $topics = $smf->query($sql);
@@ -835,48 +838,6 @@ function replaceBodyStrings($str, $replaceSmileys = true)
  */
 function slugify($text)
 {
-    // echo $text." ---> ";
-
-    ///////////////////////////////////////////////////////////////////////
-    // $text = preg_replace('(\\&.+;)', "", $text);
-    // $text = preg_replace('~[^\pL\d]+~u', '-', $text);
-    // $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
-    // $text = preg_replace('~[^-\w]+~', '', $text);
-    // $text = trim($text, '-');
-    // $text = preg_replace('~-+~', '-', $text);
-    // $text = strtolower($text);
-
-    ///////////////////////////////////////////////////////////////////////
-
-//     // Remove unwanted HTML Entities
-//     $text = str_replace('&nbsp;', ' ', $text);
-//     $text = str_replace('&quot;', '', $text);
-//     $text = str_replace('&amp;', 'und', $text);
-
-//     // HTML Entities
-//     // $text = htmlentities($text, ENT_COMPAT | ENT_HTML401, 'ISO-8859-1', false);
-//     $text = htmlentities($text);
-// echo $text." ---> ";
-//     $text = preg_replace(array('/&szlig;/','/&(..)lig;/','/&([aouAOU])uml;/','/&(.)[^;]*;/'), array('ss',"$1","$1".'e',"$1"), $text);
-
-//     // replace non letter or digits by -
-//     $text = preg_replace('~[^\pL\d]+~u', '-', $text);
-
-//     // transliterate
-//     $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
-
-//     // remove unwanted characters
-//     $text = preg_replace('~[^-\w]+~', '', $text);
-
-//     // trim
-//     $text = trim($text, '-');
-
-//     // remove duplicate -
-//     $text = preg_replace('~-+~', '-', $text);
-
-//     // lowercase
-//     $text = strtolower($text);
-
     ///////////////////////////////////////////////////////////////////////
     // // entfernt HTML und PHP Tags aus der URL,falls es solche gibt
     $text = strip_tags($text);
