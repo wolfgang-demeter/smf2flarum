@@ -506,9 +506,6 @@ SQL;
  */
 function updateUserLastRead($smf, $fla, $api)
 {
-    // $users = $fla->query("SELECT id FROM users ORDER BY id ASC");
-    // $users->setFetchMode(PDO::FETCH_OBJ);
-
     // Clear existing last read positions from the forum except for the admin account created while installing Flarum.
     $fla->exec('DELETE FROM `discussion_user` WHERE user_id != 1');
 
