@@ -53,11 +53,12 @@ try
     // var_dump(json_decode($response->getBody(), true));
 
     // Start the migration process
-    if (confirm("categories"))  migrateCategories($smf, $fla, $api);
-    if (confirm("boards"))      migrateBoards($smf, $fla, $api);
-    if (confirm("users"))       migrateUsers($smf, $fla, $api);
-    if (confirm("posts"))       migratePosts($smf, $fla, $api);
-    if (confirm("counters"))    updateUserCounters($smf, $fla, $api);
+    if (confirm("Categories"))          migrateCategories($smf, $fla, $api);
+    if (confirm("Boards"))              migrateBoards($smf, $fla, $api);
+    if (confirm("Users"))               migrateUsers($smf, $fla, $api);
+    if (confirm("Posts"))               migratePosts($smf, $fla, $api);
+    if (confirm("Last Read Position"))  updateUserLastRead($smf, $fla, $api);
+    if (confirm("User Counters"))       updateUserCounters($smf, $fla, $api);
 }
 catch (PDOException $e)
 {
@@ -501,6 +502,58 @@ SQL;
 }
 
 /**
+ * Update the users last read position for each discussion
+ */
+function updateUserLastRead($smf, $fla, $api)
+{
+    // $users = $fla->query("SELECT id FROM users ORDER BY id ASC");
+    // $users->setFetchMode(PDO::FETCH_OBJ);
+
+    // Clear existing last read positions from the forum except for the admin account created while installing Flarum.
+    $fla->exec('DELETE FROM `discussion_user` WHERE user_id != 1');
+
+    $mapPostToNumber = array();
+    $posts = $fla->query("SELECT id, discussion_id, number FROM posts ORDER BY id ASC");
+    $posts->setFetchMode(PDO::FETCH_OBJ);
+    while ($post = $posts->fetch()) {
+        $mapPostToNumber[$post->id] = array("discussion_id" => $post->discussion_id, "number" => $post->number);
+    }
+    // var_dump($mapPostToNumber);
+
+    $lastPostInDiscussion = array();
+    $discussions = $fla->query("SELECT id, last_post_id FROM discussions ORDER BY id ASC");
+    $discussions->setFetchMode(PDO::FETCH_OBJ);
+    while ($discussion = $discussions->fetch()) {
+        $lastPostInDiscussion[$discussion->id] = $discussion->last_post_id;
+    }
+    // var_dump($lastPostInDiscussion);
+
+    $lastReadTopics = $smf->query("SELECT ID_MEMBER, ID_TOPIC, ID_MSG FROM smf_log_topics ORDER BY ID_MEMBER ASC, ID_TOPIC ASC");
+    $lastReadTopics->setFetchMode(PDO::FETCH_OBJ);
+    while ($lrt = $lastReadTopics->fetch()) {
+        echo "Update last read for user with ID " . $lrt->ID_MEMBER . " on discussion with ID " . $lrt->ID_TOPIC . "\r";
+
+        if (array_key_exists($lrt->ID_MSG, $mapPostToNumber)) {
+            // If SMF saved a ID_MSG which is actually part of the ID_TOPIC!
+            if ($lrt->ID_TOPIC == $mapPostToNumber[$lrt->ID_MSG]['discussion_id']) {
+                // echo $lrt->ID_MEMBER . " / " . $mapPostToNumber[$lrt->ID_MSG]['discussion_id'] . " / " . $mapPostToNumber[$lrt->ID_MSG]['number']."\n";
+                $fla->query("INSERT INTO discussion_user (`user_id`, `discussion_id`, `last_read_at`, `last_read_post_number`, `subscription`)
+                             VALUES(".$lrt->ID_MEMBER.", ".$mapPostToNumber[$lrt->ID_MSG]['discussion_id'].", NULL, ".$mapPostToNumber[$lrt->ID_MSG]['number'].", NULL)");
+            }
+        } else {
+            // Fallback to last post in discussion if SMF saved a random ID_MSG not in ID_TOPIC!
+            if (array_key_exists($lrt->ID_TOPIC, $lastPostInDiscussion)) {
+                // echo "Fallback to last post in discussion with ID $lrt->ID_TOPIC\n";
+                $fla->query("INSERT INTO discussion_user (`user_id`, `discussion_id`, `last_read_at`, `last_read_post_number`, `subscription`)
+                             VALUES(".$lrt->ID_MEMBER.", ".$lrt->ID_TOPIC.", NULL, ".$lastPostInDiscussion[$lrt->ID_TOPIC].", NULL)");
+            }
+        }
+    }
+
+    echo "\n";
+}
+
+/**
  * Update the discussion and post counters for all users
  */
 function updateUserCounters($smf, $fla, $api)
@@ -509,7 +562,7 @@ function updateUserCounters($smf, $fla, $api)
     $users->setFetchMode(PDO::FETCH_OBJ);
 
     while ($user = $users->fetch()) {
-        echo "Update discussion & post counter for user wit ID " . $user->id . "\r";
+        echo "Update discussion & post counter for user with ID " . $user->id . "\r";
 
         $discussion_count = $fla->query("SELECT COUNT(*) FROM discussions WHERE user_id = '$user->id'")->fetchColumn();
         $post_count = $fla->query("SELECT COUNT(*) FROM posts WHERE user_id = '$user->id' AND type = 'comment'")->fetchColumn();
@@ -548,7 +601,7 @@ function migratePosts($smf, $fla, $api)
             `flarum_migrated_users` u ON t.ID_MEMBER_STARTED = u.smf_id
         WHERE t.ID_BOARD != 35 -- do not migrate content of board "Papierkorb" (Recycle Bin)
         -- AND t.ID_TOPIC in (228,471,499,1039,1687,1693,9855,15626,17729,26865,27624,27647,27603,27823)
-        -- AND t.ID_TOPIC > 27000 OR t.ID_TOPIC in (228,471,499,1039,1687,1693,6519,9855,15626,17143,17729,26266,26865,26944,26962,27624,27647,27603,27823)
+        -- AND t.ID_TOPIC > 27000 OR t.ID_TOPIC in (228,471,499,1039,1687,1693,6519,9855,15626,17143,17729,26266,26738,26865,26944,26962,27624,27647,27603,27823)
         -- AND t.ID_TOPIC in (27647)
         -- AND t.ID_TOPIC in (228,9855,26266,26944,26962)
         -- AND t.ID_TOPIC >= 27000
@@ -717,13 +770,7 @@ function replaceBodyStrings($str, $replaceSmileys = true)
     $str = preg_replace("/\<br\s*\/\>/", "\n", $str);
 
     // HTML Entities
-    $str = preg_replace("/&nbsp;/", " ", $str);
-    $str = preg_replace("/&amp;/", "&", $str);
-    $str = preg_replace("/&quot;/", "\"", $str);
-    $str = preg_replace("/&lt;/", "<", $str);
-    $str = preg_replace("/&gt;/", ">", $str);
-    $str = preg_replace("/&#039;/", "'", $str);
-    $str = preg_replace("/&#8364;/", "€", $str);
+    $str = html_entity_decode($str, ENT_COMPAT | ENT_HTML5, 'UTF-8');
 
     // BBCode
     // https://www.phpliveregex.com/#tab-preg-replace
@@ -752,12 +799,12 @@ function replaceBodyStrings($str, $replaceSmileys = true)
         $str = preg_replace("/:-P/", "😛", $str);
         $str = preg_replace("/:-x/", "😖", $str);
         $str = preg_replace("/:-\|/", "😐", $str);
-        $str = preg_replace("/:0narr:/", "[b]0/10[/b]", $str);
-        $str = preg_replace("/:1narr:/", "[b]2/10[/b]", $str);
-        $str = preg_replace("/:2narr:/", "[b]4/10[/b]", $str);
-        $str = preg_replace("/:3narr:/", "[b]6/10[/b]", $str);
-        $str = preg_replace("/:4narr:/", "[b]8/10[/b]", $str);
-        $str = preg_replace("/:5narr:/", "[b]10/10[/b]", $str);
+        $str = preg_replace("/:0narr:/", "[b][i]0/10[/i][/b]", $str);
+        $str = preg_replace("/:1narr:/", "[b][i]2/10[/i][/b]", $str);
+        $str = preg_replace("/:2narr:/", "[b][i]4/10[/i][/b]", $str);
+        $str = preg_replace("/:3narr:/", "[b][i]6/10[/i][/b]", $str);
+        $str = preg_replace("/:4narr:/", "[b][i]8/10[/i][/b]", $str);
+        $str = preg_replace("/:5narr:/", "[b][i]10/10[/i][/b]", $str);
         $str = preg_replace("/:\?/", "🤨", $str);
         $str = preg_replace("/:\?\?\?:/", "🤨", $str);
         $str = preg_replace("/:aufgeregt:/", "🤩", $str); // maybe
@@ -788,18 +835,18 @@ function replaceBodyStrings($str, $replaceSmileys = true)
         $str = preg_replace("/:megaschock:/", "😱", $str);
         $str = preg_replace("/:motz:/", "🤬", $str);
         $str = preg_replace("/:mrgreen:/", "😂", $str); // maybe
-        $str = preg_replace("/:narr0:/", "[b]0/10[/b]", $str);
-        $str = preg_replace("/:narr10:/", "[b]10/10[/b]", $str);
-        $str = preg_replace("/:narr1:/", "[b]1/10[/b]", $str);
-        $str = preg_replace("/:narr2:/", "[b]2/10[/b]", $str);
-        $str = preg_replace("/:narr3:/", "[b]3/10[/b]", $str);
-        $str = preg_replace("/:narr4:/", "[b]4/10[/b]", $str);
-        $str = preg_replace("/:narr5:/", "[b]5/10[/b]", $str);
-        $str = preg_replace("/:narr6:/", "[b]6/10[/b]", $str);
-        $str = preg_replace("/:narr7:/", "[b]7/10[/b]", $str);
-        $str = preg_replace("/:narr8:/", "[b]8/10[/b]", $str);
-        $str = preg_replace("/:narr9:/", "[b]9/10[/b]", $str);
-        $str = preg_replace("/:narrentip:/", "[b]NarrenTipp[/b]🏆🏅", $str);
+        $str = preg_replace("/:narr0:/", "[b][i]0/10[/i][/b]", $str);
+        $str = preg_replace("/:narr10:/", "[b][i]10/10[/i][/b]", $str);
+        $str = preg_replace("/:narr1:/", "[b][i]1/10[/i][/b]", $str);
+        $str = preg_replace("/:narr2:/", "[b][i]2/10[/i][/b]", $str);
+        $str = preg_replace("/:narr3:/", "[b][i]3/10[/i][/b]", $str);
+        $str = preg_replace("/:narr4:/", "[b][i]4/10[/i][/b]", $str);
+        $str = preg_replace("/:narr5:/", "[b][i]5/10[/i][/b]", $str);
+        $str = preg_replace("/:narr6:/", "[b][i]6/10[/i][/b]", $str);
+        $str = preg_replace("/:narr7:/", "[b][i]7/10[/i][/b]", $str);
+        $str = preg_replace("/:narr8:/", "[b][i]8/10[/i][/b]", $str);
+        $str = preg_replace("/:narr9:/", "[b][i]9/10[/i][/b]", $str);
+        $str = preg_replace("/:narrentip:/", "[b][i]NarrenTipp[/i][/b]🏆🏅", $str);
         $str = preg_replace("/:neutral:/", "😐", $str);
         $str = preg_replace("/:o(\s|$)/", "😆 ", $str); // only with trailing whitespace or eol
         $str = preg_replace("/:oops:/", "☺", $str);
@@ -814,9 +861,9 @@ function replaceBodyStrings($str, $replaceSmileys = true)
         $str = preg_replace("/:schlau:/", "☝️", $str); // maybe
         $str = preg_replace("/:shock:/", "😲", $str);
         $str = preg_replace("/:smile:/", "😀", $str);
-        $str = preg_replace("/:spam:/", "[b]Spam[/b]😣", $str);
+        $str = preg_replace("/:spam:/", "[b][i]Spam[/i][/b]😣", $str);
         $str = preg_replace("/:stirnklatsch:/", "🤦‍♂️", $str);
-        $str = preg_replace("/:tip:/", "[b]Tipp[/b]🏆🏅", $str);
+        $str = preg_replace("/:tip:/", "[b][i]Tipp[/i][/b]🏆🏅", $str);
         $str = preg_replace("/:twisted:/", "👹", $str);
         $str = preg_replace("/:uglyhammer:/", "🤣🤣🤣", $str);
         $str = preg_replace("/:vader:/", "🦹", $str); // maybe
