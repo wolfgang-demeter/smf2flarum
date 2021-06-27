@@ -109,7 +109,7 @@ function migrateCategories($smf, $fla, $api)
                 break;
             case 4:
                 // $catName = 'DVD, Blu-ray & 4K';
-                $catColor = '#00b6ff';
+                $catColor = '#00B6FF';
                 $catDesc = 'News & Infos zu Allem rund um DVD, Blu-ray und Ultra-HD Blu-ray.';
                 $catOrder = 1;
                 $catIcon = 'fas fa-compact-disc';
@@ -119,7 +119,7 @@ function migrateCategories($smf, $fla, $api)
                 $catName = 'Kino, Streaming & TV';
                 // $catColor = '#0091d7';
                 // $catColor = '#394955';
-                $catColor = '#4f4789';
+                $catColor = '#4F4789';
                 $catDesc = 'News, Berichte und allgemeines Gequassel über Filme & Serien sowie die Leute, die sie machen.';
                 $catOrder = 2;
                 $catIcon = 'fas fa-ticket-alt';
@@ -128,7 +128,7 @@ function migrateCategories($smf, $fla, $api)
                 // $catName = 'Reviews';
                 // $catColor = '#006db0';
                 // $catColor = '#1d5fb5';
-                $catColor = '#5b3758';
+                $catColor = '#5B3758';
                 $catDesc = 'Besprechungen und Diskussionen über Filme & Serien sowie kurze Reviews.';
                 $catOrder = 3;
                 $catIcon = 'fas fa-film';
@@ -145,7 +145,7 @@ function migrateCategories($smf, $fla, $api)
             case 5:
                 // $catName = 'Off-topic';
                 // $catColor = '#002d66';
-                $catColor = '#4c4c4c';
+                $catColor = '#4C4C4C';
                 $catDesc = 'Abseits von bewegten Bildern!';
                 $catOrder = 5;
                 $catIcon = 'fas fa-quote-right';
@@ -163,14 +163,14 @@ function migrateCategories($smf, $fla, $api)
                 // $catColor = '#b7548e';
                 // $catColor = '#ff0037';
                 // $catColor = '#f86961';
-                $catColor = '#e74c3c';
+                $catColor = '#E74C3C';
                 $catDesc = 'Nur für Mods & Admins sichtbar!';
                 $catOrder = 7;
                 $catIcon = 'fas fa-user-lock';
                 break;
             default:
                 // $catColor = '#cccccc';
-                $catColor = '#4c4c4c';
+                $catColor = '#4C4C4C';
                 $catDesc = '';
                 $catOrder = $row->catOrder;
                 $catIcon = '';
@@ -528,6 +528,7 @@ function updateUserLastRead($smf, $fla, $api)
     $lastReadTopics = $smf->query("SELECT ID_MEMBER, ID_TOPIC, ID_MSG FROM smf_log_topics ORDER BY ID_MEMBER ASC, ID_TOPIC ASC");
     $lastReadTopics->setFetchMode(PDO::FETCH_OBJ);
     while ($lrt = $lastReadTopics->fetch()) {
+        echo "\033[2K\r"; // clear line
         echo "Update last read for user with ID " . $lrt->ID_MEMBER . " on discussion with ID " . $lrt->ID_TOPIC . "\r";
 
         if (array_key_exists($lrt->ID_MSG, $mapPostToNumber)) {
@@ -598,7 +599,8 @@ function migratePosts($smf, $fla, $api)
             `flarum_migrated_users` u ON t.ID_MEMBER_STARTED = u.smf_id
         WHERE t.ID_BOARD != 35 -- do not migrate content of board "Papierkorb" (Recycle Bin)
         -- AND t.ID_TOPIC in (228,471,499,1039,1687,1693,9855,15626,17729,26865,27624,27647,27603,27823)
-        -- AND t.ID_TOPIC > 27000 OR t.ID_TOPIC in (228,471,499,1039,1687,1693,6519,9855,15626,17143,17729,26266,26738,26865,26944,26962,27624,27647,27603,27823)
+        -- AND t.ID_TOPIC > 27000 OR t.ID_TOPIC in (228,298,471,499,1039,6788,1687,11071,1693,6519,9855,15626,17143,17729,26266,26738,26865,26944,26962,27624,27647,27603,27823)
+        -- AND t.ID_TOPIC in (298)
         -- AND t.ID_TOPIC in (27647)
         -- AND t.ID_TOPIC in (228,9855,26266,26944,26962)
         -- AND t.ID_TOPIC >= 27000
@@ -779,7 +781,7 @@ function replaceBodyStrings($str, $replaceSmileys = true)
     $str = preg_replace("/\[size=([0-9]*)([a-zA-Z]*)\]/", "[size=$1]", $str);
     $str = preg_replace("/\[quote\][\s\t\r\n]*\[\/quote\]/", "", $str);
     $str = preg_replace("/\[me=(.*)\](.*)\[\/me\]/U", "\n[i][color=grey]* $1 $2[/color][/i]", $str);
-    $str = preg_replace("/\[youtube\]http[s]:\/\/(.*)\[\/youtube\]/", "https://$1", $str);
+    $str = preg_replace("/\[youtube\]https?:\/\/(.*)\[\/youtube\]/", "https://$1", $str);
 
     // ATTENTION: THE FOLLOWING PART IS HIGHLY SPECIFIC TO THE MIGRATED SMF FORUM!!!
     // Emojis and Smileys (as configured in SMF)
@@ -796,12 +798,12 @@ function replaceBodyStrings($str, $replaceSmileys = true)
         $str = preg_replace("/:-P/", "😛", $str);
         $str = preg_replace("/:-x/", "😖", $str);
         $str = preg_replace("/:-\|/", "😐", $str);
-        $str = preg_replace("/:0narr:/", "[b][i]0/10[/i][/b]", $str);
-        $str = preg_replace("/:1narr:/", "[b][i]2/10[/i][/b]", $str);
-        $str = preg_replace("/:2narr:/", "[b][i]4/10[/i][/b]", $str);
-        $str = preg_replace("/:3narr:/", "[b][i]6/10[/i][/b]", $str);
-        $str = preg_replace("/:4narr:/", "[b][i]8/10[/i][/b]", $str);
-        $str = preg_replace("/:5narr:/", "[b][i]10/10[/i][/b]", $str);
+        $str = preg_replace("/:0narr:/", "[i]0/10[/i]", $str);
+        $str = preg_replace("/:1narr:/", "[i]2/10[/i]", $str);
+        $str = preg_replace("/:2narr:/", "[i]4/10[/i]", $str);
+        $str = preg_replace("/:3narr:/", "[i]6/10[/i]", $str);
+        $str = preg_replace("/:4narr:/", "[i]8/10[/i]", $str);
+        $str = preg_replace("/:5narr:/", "[i]10/10[/i]", $str);
         $str = preg_replace("/:\?/", "🤨", $str);
         $str = preg_replace("/:\?\?\?:/", "🤨", $str);
         $str = preg_replace("/:aufgeregt:/", "🤩", $str); // maybe
@@ -832,17 +834,17 @@ function replaceBodyStrings($str, $replaceSmileys = true)
         $str = preg_replace("/:megaschock:/", "😱", $str);
         $str = preg_replace("/:motz:/", "🤬", $str);
         $str = preg_replace("/:mrgreen:/", "😂", $str); // maybe
-        $str = preg_replace("/:narr0:/", "[b][i]0/10[/i][/b]", $str);
-        $str = preg_replace("/:narr10:/", "[b][i]10/10[/i][/b]", $str);
-        $str = preg_replace("/:narr1:/", "[b][i]1/10[/i][/b]", $str);
-        $str = preg_replace("/:narr2:/", "[b][i]2/10[/i][/b]", $str);
-        $str = preg_replace("/:narr3:/", "[b][i]3/10[/i][/b]", $str);
-        $str = preg_replace("/:narr4:/", "[b][i]4/10[/i][/b]", $str);
-        $str = preg_replace("/:narr5:/", "[b][i]5/10[/i][/b]", $str);
-        $str = preg_replace("/:narr6:/", "[b][i]6/10[/i][/b]", $str);
-        $str = preg_replace("/:narr7:/", "[b][i]7/10[/i][/b]", $str);
-        $str = preg_replace("/:narr8:/", "[b][i]8/10[/i][/b]", $str);
-        $str = preg_replace("/:narr9:/", "[b][i]9/10[/i][/b]", $str);
+        $str = preg_replace("/:narr0:/", "[i]0/10[/i]", $str);
+        $str = preg_replace("/:narr10:/", "[i]10/10[/i]", $str);
+        $str = preg_replace("/:narr1:/", "[i]1/10[/i]", $str);
+        $str = preg_replace("/:narr2:/", "[i]2/10[/i]", $str);
+        $str = preg_replace("/:narr3:/", "[i]3/10[/i]", $str);
+        $str = preg_replace("/:narr4:/", "[i]4/10[/i]", $str);
+        $str = preg_replace("/:narr5:/", "[i]5/10[/i]", $str);
+        $str = preg_replace("/:narr6:/", "[i]6/10[/i]", $str);
+        $str = preg_replace("/:narr7:/", "[i]7/10[/i]", $str);
+        $str = preg_replace("/:narr8:/", "[i]8/10[/i]", $str);
+        $str = preg_replace("/:narr9:/", "[i]9/10[/i]", $str);
         $str = preg_replace("/:narrentip:/", "[b][i]NarrenTipp[/i][/b]🏆🏅", $str);
         $str = preg_replace("/:neutral:/", "😐", $str);
         $str = preg_replace("/:o(\s|$)/", "😆 ", $str); // only with trailing whitespace or eol
