@@ -101,7 +101,8 @@ function migrateCategories($smf, $fla, $api)
         switch ($row->ID_CAT) {
             case 6:
                 // $catColor = '#394955';
-                $catColor = '#636363';
+                // $catColor = '#636363';
+                $catColor = '#394955';
                 $catDesc = 'Ankündigungen, Hinweise & Tipps rund ums Forum';
                 $catOrder = 0;
                 // $catIcon = 'fas fa-comment-dots';
@@ -109,7 +110,8 @@ function migrateCategories($smf, $fla, $api)
                 break;
             case 4:
                 // $catName = 'DVD, Blu-ray & 4K';
-                $catColor = '#00B6FF';
+                // $catColor = '#00B6FF';
+                $catColor = '#00a1e0';
                 $catDesc = 'News & Infos zu Allem rund um DVD, Blu-ray und Ultra-HD Blu-ray.';
                 $catOrder = 1;
                 $catIcon = 'fas fa-compact-disc';
@@ -119,7 +121,8 @@ function migrateCategories($smf, $fla, $api)
                 $catName = 'Kino, Streaming & TV';
                 // $catColor = '#0091d7';
                 // $catColor = '#394955';
-                $catColor = '#4F4789';
+                // $catColor = '#4F4789';
+                $catColor = '#2592c7';
                 $catDesc = 'News, Berichte und allgemeines Gequassel über Filme & Serien sowie die Leute, die sie machen.';
                 $catOrder = 2;
                 $catIcon = 'fas fa-ticket-alt';
@@ -128,7 +131,8 @@ function migrateCategories($smf, $fla, $api)
                 // $catName = 'Reviews';
                 // $catColor = '#006db0';
                 // $catColor = '#1d5fb5';
-                $catColor = '#5B3758';
+                // $catColor = '#5B3758';
+                $catColor = '#3182af';
                 $catDesc = 'Besprechungen und Diskussionen über Filme & Serien sowie kurze Reviews.';
                 $catOrder = 3;
                 $catIcon = 'fas fa-film';
@@ -137,7 +141,8 @@ function migrateCategories($smf, $fla, $api)
                 // $catName = 'Hardware & Heimkino';
                 // $catColor = '#004c8a';
                 // $catColor = '#21569c';
-                $catColor = '#201335';
+                // $catColor = '#201335';
+                $catColor = '#387498';
                 $catDesc = 'Alles rund um Player, Verstärker, Lautsprecher, Streaming-Anbieter und das eigene Heimkino.';
                 $catOrder = 4;
                 $catIcon = 'fas fa-video';
@@ -145,7 +150,8 @@ function migrateCategories($smf, $fla, $api)
             case 5:
                 // $catName = 'Off-topic';
                 // $catColor = '#002d66';
-                $catColor = '#4C4C4C';
+                // $catColor = '#4C4C4C';
+                $catColor = '#3a6581';
                 $catDesc = 'Abseits von bewegten Bildern!';
                 $catOrder = 5;
                 $catIcon = 'fas fa-quote-right';
@@ -153,7 +159,8 @@ function migrateCategories($smf, $fla, $api)
             case 8:
                 // $catColor = '#41efb5';
                 // $catColor = '#006b61';
-                $catColor = '#636363';
+                // $catColor = '#636363';
+                $catColor = '#3b576a';
                 $catDesc = 'Deals, Schnäppchen und Kaufempfehlungen sowie private Angebote & Gesuche.';
                 $catOrder = 6;
                 $catIcon = 'fas fa-search-dollar';
@@ -163,7 +170,8 @@ function migrateCategories($smf, $fla, $api)
                 // $catColor = '#b7548e';
                 // $catColor = '#ff0037';
                 // $catColor = '#f86961';
-                $catColor = '#E74C3C';
+                // $catColor = '#E74C3C';
+                $catColor = '#80349e';
                 $catDesc = 'Nur für Mods & Admins sichtbar!';
                 $catOrder = 7;
                 $catIcon = 'fas fa-user-lock';
@@ -253,7 +261,7 @@ SQL;
                 $row2->color,
                 $row->boardOrder,
                 $row2->id,
-                $row2->icon
+                '' // $row2->icon --> no icon for second level tags
             );
 
             // Insert the new record into the database
@@ -601,6 +609,7 @@ function migratePosts($smf, $fla, $api)
         -- AND t.ID_TOPIC in (228,471,499,1039,1687,1693,9855,15626,17729,26865,27624,27647,27603,27823)
         -- AND t.ID_TOPIC > 27000 OR t.ID_TOPIC in (228,298,471,499,1039,6788,1687,11071,1693,6519,9855,15626,17143,17729,26266,26738,26865,26944,26962,27624,27647,27603,27823)
         -- AND t.ID_TOPIC in (298)
+        -- AND t.ID_TOPIC in (11071)
         -- AND t.ID_TOPIC in (27647)
         -- AND t.ID_TOPIC in (228,9855,26266,26944,26962)
         -- AND t.ID_TOPIC >= 27000
@@ -769,6 +778,8 @@ function replaceBodyStrings($str, $replaceSmileys = true)
     $str = preg_replace("/\<br\s*\/\>/", "\n", $str);
 
     // HTML Entities
+    $str = preg_replace("/&#039;/", "'", $str);
+    $str = preg_replace("/&#8364;/", "€", $str);
     $str = html_entity_decode($str, ENT_COMPAT | ENT_HTML5, 'UTF-8');
 
     // BBCode
@@ -798,12 +809,12 @@ function replaceBodyStrings($str, $replaceSmileys = true)
         $str = preg_replace("/:-P/", "😛", $str);
         $str = preg_replace("/:-x/", "😖", $str);
         $str = preg_replace("/:-\|/", "😐", $str);
-        $str = preg_replace("/:0narr:/", "[i]0/10[/i]", $str);
-        $str = preg_replace("/:1narr:/", "[i]2/10[/i]", $str);
-        $str = preg_replace("/:2narr:/", "[i]4/10[/i]", $str);
-        $str = preg_replace("/:3narr:/", "[i]6/10[/i]", $str);
-        $str = preg_replace("/:4narr:/", "[i]8/10[/i]", $str);
-        $str = preg_replace("/:5narr:/", "[i]10/10[/i]", $str);
+        $str = preg_replace("/:0narr:/", "🏅[i]0/10[/i]", $str);
+        $str = preg_replace("/:1narr:/", "🏅[i]2/10[/i]", $str);
+        $str = preg_replace("/:2narr:/", "🏅[i]4/10[/i]", $str);
+        $str = preg_replace("/:3narr:/", "🏅[i]6/10[/i]", $str);
+        $str = preg_replace("/:4narr:/", "🏅[i]8/10[/i]", $str);
+        $str = preg_replace("/:5narr:/", "🏅[i]10/10[/i]", $str);
         $str = preg_replace("/:\?/", "🤨", $str);
         $str = preg_replace("/:\?\?\?:/", "🤨", $str);
         $str = preg_replace("/:aufgeregt:/", "🤩", $str); // maybe
@@ -834,17 +845,17 @@ function replaceBodyStrings($str, $replaceSmileys = true)
         $str = preg_replace("/:megaschock:/", "😱", $str);
         $str = preg_replace("/:motz:/", "🤬", $str);
         $str = preg_replace("/:mrgreen:/", "😂", $str); // maybe
-        $str = preg_replace("/:narr0:/", "[i]0/10[/i]", $str);
-        $str = preg_replace("/:narr10:/", "[i]10/10[/i]", $str);
-        $str = preg_replace("/:narr1:/", "[i]1/10[/i]", $str);
-        $str = preg_replace("/:narr2:/", "[i]2/10[/i]", $str);
-        $str = preg_replace("/:narr3:/", "[i]3/10[/i]", $str);
-        $str = preg_replace("/:narr4:/", "[i]4/10[/i]", $str);
-        $str = preg_replace("/:narr5:/", "[i]5/10[/i]", $str);
-        $str = preg_replace("/:narr6:/", "[i]6/10[/i]", $str);
-        $str = preg_replace("/:narr7:/", "[i]7/10[/i]", $str);
-        $str = preg_replace("/:narr8:/", "[i]8/10[/i]", $str);
-        $str = preg_replace("/:narr9:/", "[i]9/10[/i]", $str);
+        $str = preg_replace("/:narr0:/", "🏅[i]0/10[/i]", $str);
+        $str = preg_replace("/:narr1:/", "🏅[i]1/10[/i]", $str);
+        $str = preg_replace("/:narr2:/", "🏅[i]2/10[/i]", $str);
+        $str = preg_replace("/:narr3:/", "🏅[i]3/10[/i]", $str);
+        $str = preg_replace("/:narr4:/", "🏅[i]4/10[/i]", $str);
+        $str = preg_replace("/:narr5:/", "🏅[i]5/10[/i]", $str);
+        $str = preg_replace("/:narr6:/", "🏅[i]6/10[/i]", $str);
+        $str = preg_replace("/:narr7:/", "🏅[i]7/10[/i]", $str);
+        $str = preg_replace("/:narr8:/", "🏅[i]8/10[/i]", $str);
+        $str = preg_replace("/:narr9:/", "🏅[i]9/10[/i]", $str);
+        $str = preg_replace("/:narr10:/", "🏅[i]10/10[/i]", $str);
         $str = preg_replace("/:narrentip:/", "[b][i]NarrenTipp[/i][/b]🏆🏅", $str);
         $str = preg_replace("/:neutral:/", "😐", $str);
         $str = preg_replace("/:o(\s|$)/", "😆 ", $str); // only with trailing whitespace or eol
