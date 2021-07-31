@@ -55,7 +55,7 @@ try
     // Prepare TextFormatter for custom BBCodes
     $configurator = s9e\TextFormatter\Configurator\Bundles\Forum::getConfigurator();
     $configurator->BBCodes->addCustom(
-        '[FIVESTAR rating={RANGE=0,10}][/FIVESTAR]',
+        '[FIVESTAR rating={RANGE=0,10}]',
         '<span class="bbcodeFiveStar">
             <xsl:choose>
                 <xsl:when test="@rating=\'0\'"><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></xsl:when>
@@ -834,12 +834,12 @@ function replaceBodyStrings($str, $replaceSmileys = true)
         $str = preg_replace("/:-P/", "😛", $str);
         $str = preg_replace("/:-x/", "😖", $str);
         $str = preg_replace("/:-\|/", "😐", $str);
-        $str = preg_replace("/:0narr:/", "[fivestar rating=0][/fivestar]", $str);
-        $str = preg_replace("/:1narr:/", "[fivestar rating=2][/fivestar]", $str);
-        $str = preg_replace("/:2narr:/", "[fivestar rating=4][/fivestar]", $str);
-        $str = preg_replace("/:3narr:/", "[fivestar rating=6][/fivestar]", $str);
-        $str = preg_replace("/:4narr:/", "[fivestar rating=8][/fivestar]", $str);
-        $str = preg_replace("/:5narr:/", "[fivestar rating=10][/fivestar]", $str);
+        $str = preg_replace("/:0narr:/", "[fivestar rating=0]", $str);
+        $str = preg_replace("/:1narr:/", "[fivestar rating=2]", $str);
+        $str = preg_replace("/:2narr:/", "[fivestar rating=4]", $str);
+        $str = preg_replace("/:3narr:/", "[fivestar rating=6]", $str);
+        $str = preg_replace("/:4narr:/", "[fivestar rating=8]", $str);
+        $str = preg_replace("/:5narr:/", "[fivestar rating=10]", $str);
         $str = preg_replace("/:\?/", "🤨", $str);
         $str = preg_replace("/:\?\?\?:/", "🤨", $str);
         $str = preg_replace("/:aufgeregt:/", "🤩", $str); // maybe
@@ -870,17 +870,17 @@ function replaceBodyStrings($str, $replaceSmileys = true)
         $str = preg_replace("/:megaschock:/", "😱", $str);
         $str = preg_replace("/:motz:/", "🤬", $str);
         $str = preg_replace("/:mrgreen:/", "😂", $str); // maybe
-        $str = preg_replace("/:narr0:/", "[fivestar rating=0][/fivestar]", $str);
-        $str = preg_replace("/:narr1:/", "[fivestar rating=1][/fivestar]", $str);
-        $str = preg_replace("/:narr2:/", "[fivestar rating=2][/fivestar]", $str);
-        $str = preg_replace("/:narr3:/", "[fivestar rating=3][/fivestar]", $str);
-        $str = preg_replace("/:narr4:/", "[fivestar rating=4][/fivestar]", $str);
-        $str = preg_replace("/:narr5:/", "[fivestar rating=5][/fivestar]", $str);
-        $str = preg_replace("/:narr6:/", "[fivestar rating=6][/fivestar]", $str);
-        $str = preg_replace("/:narr7:/", "[fivestar rating=7][/fivestar]", $str);
-        $str = preg_replace("/:narr8:/", "[fivestar rating=8][/fivestar]", $str);
-        $str = preg_replace("/:narr9:/", "[fivestar rating=9][/fivestar]", $str);
-        $str = preg_replace("/:narr10:/", "[fivestar rating=10][/fivestar]", $str);
+        $str = preg_replace("/:narr0:/", "[fivestar rating=0]", $str);
+        $str = preg_replace("/:narr1:/", "[fivestar rating=1]", $str);
+        $str = preg_replace("/:narr2:/", "[fivestar rating=2]", $str);
+        $str = preg_replace("/:narr3:/", "[fivestar rating=3]", $str);
+        $str = preg_replace("/:narr4:/", "[fivestar rating=4]", $str);
+        $str = preg_replace("/:narr5:/", "[fivestar rating=5]", $str);
+        $str = preg_replace("/:narr6:/", "[fivestar rating=6]", $str);
+        $str = preg_replace("/:narr7:/", "[fivestar rating=7]", $str);
+        $str = preg_replace("/:narr8:/", "[fivestar rating=8]", $str);
+        $str = preg_replace("/:narr9:/", "[fivestar rating=9]", $str);
+        $str = preg_replace("/:narr10:/", "[fivestar rating=10]", $str);
         $str = preg_replace("/:narrentip:/", "[b][i]NarrenTipp[/i][/b]🏆🏅", $str);
         $str = preg_replace("/:neutral:/", "😐", $str);
         $str = preg_replace("/:o(\s|$)/", "😆 ", $str); // only with trailing whitespace or eol
