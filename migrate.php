@@ -25,7 +25,7 @@
 require_once 'vendor/autoload.php';
 include_once 'settings.php';
 
-use s9e\TextFormatter\Bundles\Forum as TextFormatter;
+// use s9e\TextFormatter\Bundles\Forum as TextFormatter;
 use GuzzleHttp\Client;
 
 try
@@ -51,6 +51,30 @@ try
     // $response = $api->request('GET', 'discussions');
     // $response = $api->request('GET', 'users/1');
     // var_dump(json_decode($response->getBody(), true));
+
+    // Prepare TextFormatter for custom BBCodes
+    $configurator = s9e\TextFormatter\Configurator\Bundles\Forum::getConfigurator();
+    $configurator->BBCodes->addCustom(
+        '[FIVESTAR rating={RANGE=0,10}][/FIVESTAR]',
+        '<span class="bbcodeFiveStar">
+            <xsl:choose>
+                <xsl:when test="@rating=\'0\'"><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></xsl:when>
+                <xsl:when test="@rating=\'1\'"><i class="fas fa-star-half-alt"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></xsl:when>
+                <xsl:when test="@rating=\'2\'"><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></xsl:when>
+                <xsl:when test="@rating=\'3\'"><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></xsl:when>
+                <xsl:when test="@rating=\'4\'"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></xsl:when>
+                <xsl:when test="@rating=\'5\'"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i><i class="far fa-star"></i><i class="far fa-star"></i></xsl:when>
+                <xsl:when test="@rating=\'6\'"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></xsl:when>
+                <xsl:when test="@rating=\'7\'"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i><i class="far fa-star"></i></xsl:when>
+                <xsl:when test="@rating=\'8\'"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i></xsl:when>
+                <xsl:when test="@rating=\'9\'"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i></xsl:when>
+                <xsl:when test="@rating=\'10\'"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></xsl:when>
+                <xsl:otherwise><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></xsl:otherwise>
+            </xsl:choose>
+        </span>'
+    );
+    $configurator->saveBundle('Smf2FlarumFormatterBundle', '/tmp/Smf2FlarumFormatterBundle.php');
+    include '/tmp/Smf2FlarumFormatterBundle.php';
 
     // Start the migration process
     if (confirm("Categories"))          migrateCategories($smf, $fla, $api);
@@ -609,6 +633,7 @@ function migratePosts($smf, $fla, $api)
         -- AND t.ID_TOPIC in (228,471,499,1039,1687,1693,9855,15626,17729,26865,27624,27647,27603,27823)
         -- AND t.ID_TOPIC > 27000 OR t.ID_TOPIC in (228,298,471,499,1039,6788,1687,11071,1693,6519,9855,15626,17143,17729,26266,26738,26865,26944,26962,27624,27647,27603,27823)
         -- AND t.ID_TOPIC in (298)
+        -- AND t.ID_TOPIC in (499,11071)
         -- AND t.ID_TOPIC in (11071)
         -- AND t.ID_TOPIC in (27647)
         -- AND t.ID_TOPIC in (228,9855,26266,26944,26962)
@@ -731,7 +756,7 @@ SQL;
                 ':number' => $post_counter++,
                 ':created_at' => convertTimestamp($post->posterTime),
                 ':user_id' => $post->fla_id,
-                ':content' => TextFormatter::parse(replaceBodyStrings($post->body))
+                ':content' => Smf2FlarumFormatterBundle::parse(replaceBodyStrings($post->body))
             );
             $insert_post->execute($data);
             // $insert_post->debugDumpParams();
@@ -809,12 +834,12 @@ function replaceBodyStrings($str, $replaceSmileys = true)
         $str = preg_replace("/:-P/", "😛", $str);
         $str = preg_replace("/:-x/", "😖", $str);
         $str = preg_replace("/:-\|/", "😐", $str);
-        $str = preg_replace("/:0narr:/", "🏅[i]0/10[/i]", $str);
-        $str = preg_replace("/:1narr:/", "🏅[i]2/10[/i]", $str);
-        $str = preg_replace("/:2narr:/", "🏅[i]4/10[/i]", $str);
-        $str = preg_replace("/:3narr:/", "🏅[i]6/10[/i]", $str);
-        $str = preg_replace("/:4narr:/", "🏅[i]8/10[/i]", $str);
-        $str = preg_replace("/:5narr:/", "🏅[i]10/10[/i]", $str);
+        $str = preg_replace("/:0narr:/", "[fivestar rating=0][/fivestar]", $str);
+        $str = preg_replace("/:1narr:/", "[fivestar rating=2][/fivestar]", $str);
+        $str = preg_replace("/:2narr:/", "[fivestar rating=4][/fivestar]", $str);
+        $str = preg_replace("/:3narr:/", "[fivestar rating=6][/fivestar]", $str);
+        $str = preg_replace("/:4narr:/", "[fivestar rating=8][/fivestar]", $str);
+        $str = preg_replace("/:5narr:/", "[fivestar rating=10][/fivestar]", $str);
         $str = preg_replace("/:\?/", "🤨", $str);
         $str = preg_replace("/:\?\?\?:/", "🤨", $str);
         $str = preg_replace("/:aufgeregt:/", "🤩", $str); // maybe
@@ -845,17 +870,17 @@ function replaceBodyStrings($str, $replaceSmileys = true)
         $str = preg_replace("/:megaschock:/", "😱", $str);
         $str = preg_replace("/:motz:/", "🤬", $str);
         $str = preg_replace("/:mrgreen:/", "😂", $str); // maybe
-        $str = preg_replace("/:narr0:/", "🏅[i]0/10[/i]", $str);
-        $str = preg_replace("/:narr1:/", "🏅[i]1/10[/i]", $str);
-        $str = preg_replace("/:narr2:/", "🏅[i]2/10[/i]", $str);
-        $str = preg_replace("/:narr3:/", "🏅[i]3/10[/i]", $str);
-        $str = preg_replace("/:narr4:/", "🏅[i]4/10[/i]", $str);
-        $str = preg_replace("/:narr5:/", "🏅[i]5/10[/i]", $str);
-        $str = preg_replace("/:narr6:/", "🏅[i]6/10[/i]", $str);
-        $str = preg_replace("/:narr7:/", "🏅[i]7/10[/i]", $str);
-        $str = preg_replace("/:narr8:/", "🏅[i]8/10[/i]", $str);
-        $str = preg_replace("/:narr9:/", "🏅[i]9/10[/i]", $str);
-        $str = preg_replace("/:narr10:/", "🏅[i]10/10[/i]", $str);
+        $str = preg_replace("/:narr0:/", "[fivestar rating=0][/fivestar]", $str);
+        $str = preg_replace("/:narr1:/", "[fivestar rating=1][/fivestar]", $str);
+        $str = preg_replace("/:narr2:/", "[fivestar rating=2][/fivestar]", $str);
+        $str = preg_replace("/:narr3:/", "[fivestar rating=3][/fivestar]", $str);
+        $str = preg_replace("/:narr4:/", "[fivestar rating=4][/fivestar]", $str);
+        $str = preg_replace("/:narr5:/", "[fivestar rating=5][/fivestar]", $str);
+        $str = preg_replace("/:narr6:/", "[fivestar rating=6][/fivestar]", $str);
+        $str = preg_replace("/:narr7:/", "[fivestar rating=7][/fivestar]", $str);
+        $str = preg_replace("/:narr8:/", "[fivestar rating=8][/fivestar]", $str);
+        $str = preg_replace("/:narr9:/", "[fivestar rating=9][/fivestar]", $str);
+        $str = preg_replace("/:narr10:/", "[fivestar rating=10][/fivestar]", $str);
         $str = preg_replace("/:narrentip:/", "[b][i]NarrenTipp[/i][/b]🏆🏅", $str);
         $str = preg_replace("/:neutral:/", "😐", $str);
         $str = preg_replace("/:o(\s|$)/", "😆 ", $str); // only with trailing whitespace or eol
