@@ -1,27 +1,4 @@
 <?php
-// MIT License
-//
-// Copyright (c) 2017 Sri Harsha Chilakapati
-// Copyright (c) 2021 Wolfgang Demeter
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all
-// copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-
 require_once 'vendor/autoload.php';
 include_once 'settings.php';
 
@@ -53,6 +30,7 @@ try
     // var_dump(json_decode($response->getBody(), true));
 
     // Prepare TextFormatter for custom BBCodes
+    // "BBCode 5 Star Rating" extension https://github.com/wolfgang-demeter/flarum-ext-bbcode-5star-rating
     $configurator = s9e\TextFormatter\Configurator\Bundles\Forum::getConfigurator();
     $configurator->BBCodes->addCustom(
         '[FIVESTAR rating={RANGE=0,10}]',
