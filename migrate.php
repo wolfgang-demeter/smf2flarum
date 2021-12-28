@@ -34,7 +34,7 @@ try
     $configurator = s9e\TextFormatter\Configurator\Bundles\Forum::getConfigurator();
     $configurator->BBCodes->addCustom(
         '[FIVESTAR rating={RANGE=0,10}]',
-        '<span class="bbcodeFiveStar">
+        '<span class="bbcode-fivestar-rating">
             <xsl:choose>
                 <xsl:when test="@rating=\'0\'"><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></xsl:when>
                 <xsl:when test="@rating=\'1\'"><i class="fas fa-star-half-alt"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></xsl:when>
@@ -99,12 +99,14 @@ function migrateCategories($smf, $fla, $api)
 
         // ATTENTION: THE FOLLOWING PART IS HIGHLY SPECIFIC TO THE MIGRATED SMF FORUM!!!
         // Colors: https://mycolor.space/?hex=%2300B6FF&sub=1
+        // Dracula-Colors: https://draculatheme.com/contribute
         // DVDnarr red #b83a17
         switch ($row->ID_CAT) {
             case 6:
                 // $catColor = '#394955';
                 // $catColor = '#636363';
-                $catColor = '#394955';
+                // $catColor = '#0d2421';
+                $catColor = '#6272a4'; // Dracula
                 $catDesc = 'Ankündigungen, Hinweise & Tipps rund ums Forum';
                 $catOrder = 0;
                 // $catIcon = 'fas fa-comment-dots';
@@ -114,6 +116,7 @@ function migrateCategories($smf, $fla, $api)
                 // $catName = 'DVD, Blu-ray & 4K';
                 // $catColor = '#00B6FF';
                 $catColor = '#00a1e0';
+                // $catColor = '#8be9fd'; // Dracula
                 $catDesc = 'News & Infos zu Allem rund um DVD, Blu-ray und Ultra-HD Blu-ray.';
                 $catOrder = 1;
                 $catIcon = 'fas fa-compact-disc';
@@ -124,7 +127,9 @@ function migrateCategories($smf, $fla, $api)
                 // $catColor = '#0091d7';
                 // $catColor = '#394955';
                 // $catColor = '#4F4789';
-                $catColor = '#2592c7';
+                // $catColor = '#2592c7';
+                // $catColor = '#00d3d0';
+                $catColor = '#ff79c6'; // Dracula
                 $catDesc = 'News, Berichte und allgemeines Gequassel über Filme & Serien sowie die Leute, die sie machen.';
                 $catOrder = 2;
                 $catIcon = 'fas fa-ticket-alt';
@@ -134,7 +139,9 @@ function migrateCategories($smf, $fla, $api)
                 // $catColor = '#006db0';
                 // $catColor = '#1d5fb5';
                 // $catColor = '#5B3758';
-                $catColor = '#3182af';
+                // $catColor = '#3182af';
+                // $catColor = '#6c79cf';
+                $catColor = '#bd93f9'; // Dracula
                 $catDesc = 'Besprechungen und Diskussionen über Filme & Serien sowie kurze Reviews.';
                 $catOrder = 3;
                 $catIcon = 'fas fa-film';
@@ -144,7 +151,9 @@ function migrateCategories($smf, $fla, $api)
                 // $catColor = '#004c8a';
                 // $catColor = '#21569c';
                 // $catColor = '#201335';
-                $catColor = '#387498';
+                // $catColor = '#387498';
+                // $catColor = '#394955';
+                $catColor = '#ffb86c'; // Dracula
                 $catDesc = 'Alles rund um Player, Verstärker, Lautsprecher, Streaming-Anbieter und das eigene Heimkino.';
                 $catOrder = 4;
                 $catIcon = 'fas fa-video';
@@ -153,7 +162,9 @@ function migrateCategories($smf, $fla, $api)
                 // $catName = 'Off-topic';
                 // $catColor = '#002d66';
                 // $catColor = '#4C4C4C';
-                $catColor = '#3a6581';
+                // $catColor = '#3a6581';
+                // $catColor = '#9b467a';
+                $catColor = '#50fa7b'; // Dracula
                 $catDesc = 'Abseits von bewegten Bildern!';
                 $catOrder = 5;
                 $catIcon = 'fas fa-quote-right';
@@ -162,7 +173,9 @@ function migrateCategories($smf, $fla, $api)
                 // $catColor = '#41efb5';
                 // $catColor = '#006b61';
                 // $catColor = '#636363';
-                $catColor = '#3b576a';
+                // $catColor = '#3b576a';
+                // $catColor = '#8c7357';
+                $catColor = '#6272a4'; // Dracula
                 $catDesc = 'Deals, Schnäppchen und Kaufempfehlungen sowie private Angebote & Gesuche.';
                 $catOrder = 6;
                 $catIcon = 'fas fa-search-dollar';
@@ -173,14 +186,17 @@ function migrateCategories($smf, $fla, $api)
                 // $catColor = '#ff0037';
                 // $catColor = '#f86961';
                 // $catColor = '#E74C3C';
-                $catColor = '#80349e';
+                // $catColor = '#80349e';
+                // $catColor = '#f16b83';
+                $catColor = '#ff5555'; // Dracula
                 $catDesc = 'Nur für Mods & Admins sichtbar!';
                 $catOrder = 7;
                 $catIcon = 'fas fa-user-lock';
                 break;
             default:
                 // $catColor = '#cccccc';
-                $catColor = '#4C4C4C';
+                // $catColor = '#4C4C4C';
+                $catColor = '#6272a4'; // Dracula
                 $catDesc = '';
                 $catOrder = $row->catOrder;
                 $catIcon = '';
