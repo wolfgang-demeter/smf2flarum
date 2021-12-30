@@ -106,8 +106,9 @@ function migrateCategories($smf, $fla, $api)
                 // $catColor = '#394955';
                 // $catColor = '#636363';
                 // $catColor = '#0d2421';
-                $catColor = '#6272a4'; // Dracula
-                $catDesc = 'Ankündigungen, Hinweise & Tipps rund ums Forum';
+                // $catColor = '#6272a4'; // Dracula
+                $catColor = '#44475a'; // Dracula
+                $catDesc = 'Ankündigungen, Hinweise und Tipps rund ums Forum';
                 $catOrder = 0;
                 // $catIcon = 'fas fa-comment-dots';
                 $catIcon = 'fas fa-info-circle';
@@ -117,7 +118,7 @@ function migrateCategories($smf, $fla, $api)
                 // $catColor = '#00B6FF';
                 $catColor = '#00a1e0';
                 // $catColor = '#8be9fd'; // Dracula
-                $catDesc = 'News & Infos zu Allem rund um DVD, Blu-ray und Ultra-HD Blu-ray.';
+                $catDesc = 'News und Informationen zu Allem rund um DVD, Blu-ray und Ultra-HD Blu-ray.';
                 $catOrder = 1;
                 $catIcon = 'fas fa-compact-disc';
                 break;
@@ -130,7 +131,7 @@ function migrateCategories($smf, $fla, $api)
                 // $catColor = '#2592c7';
                 // $catColor = '#00d3d0';
                 $catColor = '#ff79c6'; // Dracula
-                $catDesc = 'News, Berichte und allgemeines Gequassel über Filme & Serien sowie die Leute, die sie machen.';
+                $catDesc = 'News, Berichte und Diskussionenen über Filme & Serien sowie die Leute, die sie machen.';
                 $catOrder = 2;
                 $catIcon = 'fas fa-ticket-alt';
                 break;
@@ -143,6 +144,7 @@ function migrateCategories($smf, $fla, $api)
                 // $catColor = '#6c79cf';
                 $catColor = '#bd93f9'; // Dracula
                 $catDesc = 'Besprechungen und Diskussionen über Filme & Serien sowie kurze Reviews.';
+                // $catDesc = 'Reviews zu Filmen & Serien.';
                 $catOrder = 3;
                 $catIcon = 'fas fa-film';
                 break;
@@ -164,7 +166,8 @@ function migrateCategories($smf, $fla, $api)
                 // $catColor = '#4C4C4C';
                 // $catColor = '#3a6581';
                 // $catColor = '#9b467a';
-                $catColor = '#50fa7b'; // Dracula
+                // $catColor = '#50fa7b'; // Dracula
+                $catColor = '#6272a4'; // Dracula
                 $catDesc = 'Abseits von bewegten Bildern!';
                 $catOrder = 5;
                 $catIcon = 'fas fa-quote-right';
@@ -175,7 +178,8 @@ function migrateCategories($smf, $fla, $api)
                 // $catColor = '#636363';
                 // $catColor = '#3b576a';
                 // $catColor = '#8c7357';
-                $catColor = '#6272a4'; // Dracula
+                // $catColor = '#6272a4'; // Dracula
+                $catColor = '#44475a'; // Dracula
                 $catDesc = 'Deals, Schnäppchen und Kaufempfehlungen sowie private Angebote & Gesuche.';
                 $catOrder = 6;
                 $catIcon = 'fas fa-search-dollar';
@@ -196,7 +200,8 @@ function migrateCategories($smf, $fla, $api)
             default:
                 // $catColor = '#cccccc';
                 // $catColor = '#4C4C4C';
-                $catColor = '#6272a4'; // Dracula
+                // $catColor = '#6272a4'; // Dracula
+                $catColor = '#44475a'; // Dracula
                 $catDesc = '';
                 $catOrder = $row->catOrder;
                 $catIcon = '';
@@ -225,6 +230,15 @@ function migrateCategories($smf, $fla, $api)
  */
 function migrateBoards($smf, $fla, $api)
 {
+    // Make the following slugified boards secondary tags
+    $secTags['deutsch'] = array('desc' => 'Medien aus Deutschland (DVD-Regioncode 2 bzw. Blu-ray-Region B) oder deutschsprachige Filme & Serien.', 'color' => '#6272a4', 'icon' => 'fas fa-globe-europe');
+    $secTags['rest-der-welt'] = array('desc' => 'Medien, Filme & Serien aus dem Rest der Welt mit Ausnahme von Deutschland & Asien.', 'color' => '#6272a4', 'icon' => 'fas fa-globe-americas');
+    $secTags['asien'] = array('desc' => 'Medien, Filme & Serien aus Ausien.', 'color' => '#6272a4', 'icon' => 'fas fa-globe-asia');
+    $secTags['animation-und-zeichentrick'] = array('desc' => 'Alles rund um Animes & Zeichentrickfilme.', 'color' => '#6272a4', 'icon' => 'fas fa-dragon');
+    $secTags['musik'] = array('desc' => 'Alles rund um Musik.', 'color' => '#6272a4', 'icon' => 'fas fa-music');
+    $secTags['games'] = array('desc' => 'Alles rund um Games.', 'color' => '#6272a4', 'icon' => 'fas fa-gamepad');
+    $secTagsInserted = array();
+
     // Create a helper table for all the boards, which stores the SMF board ids with the Flarum equivalents
     $sql = <<<SQL
         CREATE TABLE IF NOT EXISTS `flarum_migrated_boards` (
@@ -271,19 +285,52 @@ SQL;
             $stmt2->setFetchMode(PDO::FETCH_OBJ);
             $row2 = $stmt2->fetch();
 
-            // Compute the new record to be inserted
-            $data = array(
-                preg_replace('(\\&amp;)', '&', $row->bname),
-                slugify($row2->name.'-'.$row->bname),
-                $row->description,
-                $row2->color,
-                $row->boardOrder,
-                $row2->id,
-                '' // $row2->icon --> no icon for second level tags
-            );
+            if (!array_key_exists(slugify($row->bname), $secTags)) {
+                // echo "Create PRIMARY tag for:   ".slugify($row2->name.'-'.$row->bname)."\n";
+                // Compute the new record to be inserted
+                $data = array(
+                    preg_replace('(\\&amp;)', '&', $row->bname),
+                    slugify($row2->name.'-'.$row->bname),
+                    $row->description,
+                    $row2->color,
+                    $row->boardOrder,
+                    $row2->id,
+                    '' // $row2->icon --> no icon for second level tags
+                );
 
-            // Insert the new record into the database
-            $insert->execute($data);
+                // Insert the new record into the database
+                $insert->execute($data);
+
+                $flaTagId = $fla->lastInsertId();
+                $flaTagParentId = ($row2->id != NULL ? $row2->id : NULL);
+            } else {
+                // echo "Create SECONDARY tag for: ".slugify($row->bname)."\n";
+                // Compute the new record to be inserted
+                $data = array(
+                    preg_replace('(\\&amp;)', '&', $row->bname),
+                    slugify($row->bname),
+                    $secTags[slugify($row->bname)]['desc'],
+                    $secTags[slugify($row->bname)]['color'],
+                    NULL,
+                    NULL,
+                    $secTags[slugify($row->bname)]['icon']
+                );
+
+                // print_r($secTagsInserted);
+                if (!array_key_exists(slugify($row->bname), $secTagsInserted)) {
+                    // Insert the tag computed into the database
+                    $insert->execute($data);
+
+                    $flaTagId = $fla->lastInsertId();
+                    $flaTagParentId = ($row2->id != NULL ? $row2->id : NULL);
+
+                    $secTagsInserted[slugify($row->bname)] = $flaTagId;
+                } else {
+                    // secondary tag alsready inserted; so use it
+                    $flaTagId = $secTagsInserted[slugify($row->bname)];
+                    $flaTagParentId = ($row2->id != NULL ? $row2->id : NULL);
+                }
+            }
         } else {
             // All the child boards are secondary tags
             // Compute the new record as secondary tag
@@ -291,21 +338,25 @@ SQL;
                 preg_replace('(\\&amp;)', '&', $row->bname),
                 slugify($row->bname),
                 $row->description,
-                '#bdc3c7',
+                '#6272a4',
                 NULL,
-                NULL
+                NULL,
+                '' // no icon for second level tags
             );
 
             // Insert the tag computed into the database
             $insert->execute($data);
+
+            $flaTagId = $fla->lastInsertId();
+            $flaTagParentId = NULL;
         }
 
         // Insert the helper record into the helper table
         $insert_mb->execute(array(
             ':smf_board_id' => $row->ID_BOARD,
             ':smf_category_id' => $row->ID_CAT,
-            ':fla_tag_id' => $fla->lastInsertId(),
-            ':fla_tag_parent_id' => ($row2->id != NULL ? $row2->id : NULL)
+            ':fla_tag_id' => $flaTagId,
+            ':fla_tag_parent_id' => $flaTagParentId
         ));
     }
 
@@ -630,7 +681,8 @@ function migratePosts($smf, $fla, $api)
         -- AND t.ID_TOPIC in (499,11071)
         -- AND t.ID_TOPIC in (11071)
         -- AND t.ID_TOPIC in (27647)
-        -- AND t.ID_TOPIC in (228,9855,26266,26944,26962)
+        -- AND t.ID_TOPIC in (27930)
+        -- AND t.ID_TOPIC in (228,9855,26266,26944,26962,27930)
         -- AND t.ID_TOPIC >= 27000
         ORDER BY m.posterTime, t.ID_TOPIC
 SQL;
@@ -670,14 +722,14 @@ SQL;
 SQL;
     $insert_discussion_tag = $fla->prepare($sql);
 
-    // // Mapping Array from SMF Category id to Flarum Tag id
+    // Mapping Array from SMF Category id to Flarum Tag id
     $map_category_tag = array();
     $flarum_migrated_boards = $smf->query('SELECT * FROM `flarum_migrated_boards`');
     $flarum_migrated_boards->setFetchMode(PDO::FETCH_OBJ);
     while ($migrated_board = $flarum_migrated_boards->fetch()) {
-        $map_category_tag[$migrated_board->fla_tag_id] = $migrated_board->fla_tag_parent_id;
+        $map_category_tag[$migrated_board->smf_board_id] = $migrated_board->fla_tag_parent_id;
     }
-    // var_dump($map_category_tag);
+    // print_r($map_category_tag);
 
     // Mapping Array from SMF Board id to Flarum Tag id
     $map_board_tag = array();
@@ -686,7 +738,7 @@ SQL;
     while ($migrated_board = $flarum_migrated_boards->fetch()) {
         $map_board_tag[$migrated_board->smf_board_id] = $migrated_board->fla_tag_id;
     }
-    // var_dump($map_board_tag);
+    // print_r($map_board_tag);
 
     // SQL statement to insert the post into the Flarum backend
     $sql = <<<SQL
@@ -736,7 +788,7 @@ SQL;
 
         // Tie discussion to tags
         // former category
-        $insert_discussion_tag->execute(array(':discussion_id' => $topic->ID_TOPIC, ':tag_id' => $map_category_tag[$map_board_tag[$topic->ID_BOARD]]));
+        $insert_discussion_tag->execute(array(':discussion_id' => $topic->ID_TOPIC, ':tag_id' => $map_category_tag[$topic->ID_BOARD]));
         // former board
         $insert_discussion_tag->execute(array(':discussion_id' => $topic->ID_TOPIC, ':tag_id' => $map_board_tag[$topic->ID_BOARD]));
         // $insert_discussion_tag->debugDumpParams();
