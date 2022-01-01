@@ -4,6 +4,7 @@ include_once 'settings.php';
 
 // use s9e\TextFormatter\Bundles\Forum as TextFormatter;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
 
 try
 {
@@ -50,6 +51,14 @@ try
                 <xsl:otherwise><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i></xsl:otherwise>
             </xsl:choose>
         </span>'
+    );
+    $configurator->BBCodes->addCustom(
+        '[upl-image-preview url={URL}]',
+        ''
+    );
+    $configurator->BBCodes->addCustom(
+        '[upl-file uuid={IDENTIFIER} size={SIMPLETEXT2}]{SIMPLETEXT1}[/upl-file]',
+        ''
     );
     $configurator->saveBundle('Smf2FlarumFormatterBundle', '/tmp/Smf2FlarumFormatterBundle.php');
     include '/tmp/Smf2FlarumFormatterBundle.php';
@@ -662,6 +671,8 @@ function migratePosts($smf, $fla, $api)
     $fla->exec('ALTER TABLE `discussions` AUTO_INCREMENT = 1');
     $fla->exec('DELETE FROM `discussion_tag`');
     $fla->exec('ALTER TABLE `discussion_tag` AUTO_INCREMENT = 1');
+    $fla->exec('DELETE FROM `fof_upload_files`');
+    $fla->exec('ALTER TABLE `fof_upload_files` AUTO_INCREMENT = 1');
 
     // SQL query to fetch the topics from the SMF database
     $sql = <<<SQL
@@ -676,10 +687,12 @@ function migratePosts($smf, $fla, $api)
             `flarum_migrated_users` u ON t.ID_MEMBER_STARTED = u.smf_id
         WHERE t.ID_BOARD != 35 -- do not migrate content of board "Papierkorb" (Recycle Bin)
         -- AND t.ID_TOPIC in (228,471,499,1039,1687,1693,9855,15626,17729,26865,27624,27647,27603,27823)
-        -- AND t.ID_TOPIC > 27000 OR t.ID_TOPIC in (228,298,471,499,1039,6788,1687,11071,1693,6519,9855,15626,17143,17729,26266,26738,26865,26944,26962,27624,27647,27603,27823)
+        -- AND t.ID_TOPIC > 27000 OR t.ID_TOPIC in (228,298,471,499,1039,6788,1687,11071,1693,6519,9855,14641,15626,17143,17729,21389,26266,26636,26738,26865,26944,26962,27624,27647,27603,27823)
         -- AND t.ID_TOPIC in (298)
         -- AND t.ID_TOPIC in (499,11071)
         -- AND t.ID_TOPIC in (11071)
+        -- AND t.ID_TOPIC in (14641,21389,26636,27160,27430)
+        -- AND t.ID_TOPIC in (27160)
         -- AND t.ID_TOPIC in (27647)
         -- AND t.ID_TOPIC in (27930)
         -- AND t.ID_TOPIC in (228,9855,26266,26944,26962,27930)
@@ -740,6 +753,17 @@ SQL;
     }
     // print_r($map_board_tag);
 
+    // Get all SMF Message Attachments
+    $attachments = array();
+    $smfAttachments = $smf->query('SELECT * FROM `smf_attachments` WHERE `ID_MSG` != 0 AND `attachmentType` = 0 ORDER BY `ID_MSG` ASC');
+    while ($smfAttachment = $smfAttachments->fetch()) {
+        if (!array_key_exists($smfAttachment['ID_MSG'], $attachments)) {
+            $attachments[$smfAttachment['ID_MSG']] = array();
+        }
+        array_push($attachments[$smfAttachment['ID_MSG']], $smfAttachment);
+    }
+    // print_r($attachments);
+
     // SQL statement to insert the post into the Flarum backend
     $sql = <<<SQL
         INSERT INTO `posts` (
@@ -796,13 +820,61 @@ SQL;
         // Migrate Posts
         while ($post = $posts->fetch())
         {
+            // Migrate Attachments if any
+            $fileAttachmentBBCode = '';
+            if (array_key_exists($post->ID_MSG, $attachments)) {
+                foreach($attachments[$post->ID_MSG] as $attachment) {
+                    // print_r($attachment);
+                    // Some attachments are restricted by threads/permissions. We can access them via the file_hash if available - otherwise try the dlattach-url
+                    if ($attachment['file_hash'] != '') {
+                        // /attachments/1966_554bc900ba11a55f51cf75a21fe930c21fc99796
+                        $attachmentUrl = smf_url."attachments/".$attachment['ID_ATTACH']."_".$attachment['file_hash'];
+                    } else {
+                        // /index.php?action=dlattach;topic=14641.0;attach=206;image
+                        $attachmentUrl = smf_url."index.php?action=dlattach;topic=".$topic->ID_TOPIC.".0;attach=".$attachment['ID_ATTACH'].";image";
+                    }
+                    echo "\033[2K\r"; // clear line
+                    echo "Migrating attachment ID ".$attachment['ID_ATTACH']." of User ID ".$post->fla_id." for Topic ID: ".$topic->ID_TOPIC." // URL: ".$attachmentUrl."\r";
+
+                    // Content-Disposition: form-data; name="files[]"; filename="some-image-filename.jpg"
+                    if (file_put_contents('/tmp/attachmentmigration', fopen($attachmentUrl, 'r'))) {
+                        try {
+                            $response = $api->request(
+                                'POST',
+                                'fof/upload',
+                                [
+                                    'multipart' => [
+                                        [
+                                            'name' => 'files[]',
+                                            'filename' => $attachment['filename'],
+                                            'contents' => fopen('/tmp/attachmentmigration', 'r'),
+                                        ]
+                                    ]
+                                ]
+                            );
+                            $fofUploadResponse = json_decode($response->getBody(), true);
+                            // print_r($fofUploadResponse);
+
+                            // update actor_id for file-attachment in database
+                            $fla->query("UPDATE fof_upload_files SET actor_id = ".$post->fla_id." WHERE id = ".$fofUploadResponse['data'][0]['id']);
+
+                            // prepare BBCode to attach at end of Post
+                            $fileAttachmentBBCode = $fileAttachmentBBCode."\n\n".$fofUploadResponse['data'][0]['attributes']['bbcode'];
+                        } catch (ClientException $e) {
+                            echo "FAILED migrating attachment ID ".$attachment['ID_ATTACH']." of User ID ".$post->fla_id." for Topic ID: ".$topic->ID_TOPIC." // URL: ".$attachmentUrl."\n";
+                        }
+                    }
+                }
+            }
+
+            // save Post
             $data = array(
                 ':id' => $post->ID_MSG,
                 ':discussion_id' => $topic->ID_TOPIC,
                 ':number' => $post_counter++,
                 ':created_at' => convertTimestamp($post->posterTime),
                 ':user_id' => $post->fla_id,
-                ':content' => Smf2FlarumFormatterBundle::parse(replaceBodyStrings($post->body))
+                ':content' => Smf2FlarumFormatterBundle::parse(replaceBodyStrings($post->body).$fileAttachmentBBCode)
             );
             $insert_post->execute($data);
             // $insert_post->debugDumpParams();
