@@ -12,6 +12,9 @@ define('fla_pass', 'flarumpass');
 // SMF source URL (to get avatars and such)
 define('smf_url', 'https://example.com/');
 
+// Flarum target URL
+define('fla_url', 'https://example.org/');
+
 // Flarum API credentials
 define('fla_api_url', 'https://example.org/api/');
 define('fla_api_token', 'flarum-api-token; userId=1');

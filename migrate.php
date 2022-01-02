@@ -31,8 +31,9 @@ try
     // var_dump(json_decode($response->getBody(), true));
 
     // Prepare TextFormatter for custom BBCodes
-    // "BBCode 5 Star Rating" extension https://github.com/wolfgang-demeter/flarum-ext-bbcode-5star-rating
     $configurator = s9e\TextFormatter\Configurator\Bundles\Forum::getConfigurator();
+
+    // "BBCode 5 Star Rating" extension https://github.com/wolfgang-demeter/flarum-ext-bbcode-5star-rating
     $configurator->BBCodes->addCustom(
         '[FIVESTAR rating={RANGE=0,10}]',
         '<span class="bbcode-fivestar-rating">
@@ -52,6 +53,8 @@ try
             </xsl:choose>
         </span>'
     );
+
+    // "Upload by FriendsOfFlarum" extension https://github.com/FriendsOfFlarum/upload/
     $configurator->BBCodes->addCustom(
         '[upl-image-preview url={URL}]',
         ''
@@ -60,6 +63,7 @@ try
         '[upl-file uuid={IDENTIFIER} size={SIMPLETEXT2}]{SIMPLETEXT1}[/upl-file]',
         ''
     );
+
     $configurator->saveBundle('Smf2FlarumFormatterBundle', '/tmp/Smf2FlarumFormatterBundle.php');
     include '/tmp/Smf2FlarumFormatterBundle.php';
 
@@ -104,18 +108,10 @@ function migrateCategories($smf, $fla, $api)
         $done++;
         echo "Migrating categories: " . $done . "/" . $total . " (" . ((int) ($done / $total * 100)) . "%)\r";
 
-        // Transform the data to new record format
-
         // ATTENTION: THE FOLLOWING PART IS HIGHLY SPECIFIC TO THE MIGRATED SMF FORUM!!!
-        // Colors: https://mycolor.space/?hex=%2300B6FF&sub=1
         // Dracula-Colors: https://draculatheme.com/contribute
-        // DVDnarr red #b83a17
         switch ($row->ID_CAT) {
             case 6:
-                // $catColor = '#394955';
-                // $catColor = '#636363';
-                // $catColor = '#0d2421';
-                // $catColor = '#6272a4'; // Dracula
                 $catColor = '#44475a'; // Dracula
                 $catDesc = 'Ankündigungen, Hinweise und Tipps rund ums Forum';
                 $catOrder = 0;
@@ -124,21 +120,14 @@ function migrateCategories($smf, $fla, $api)
                 break;
             case 4:
                 // $catName = 'DVD, Blu-ray & 4K';
-                // $catColor = '#00B6FF';
                 $catColor = '#00a1e0';
-                // $catColor = '#8be9fd'; // Dracula
                 $catDesc = 'News und Informationen zu Allem rund um DVD, Blu-ray und Ultra-HD Blu-ray.';
                 $catOrder = 1;
                 $catIcon = 'fas fa-compact-disc';
                 break;
             case 1:
                 // $catName = 'Kino & TV';
-                $catName = 'Kino, Streaming & TV';
-                // $catColor = '#0091d7';
-                // $catColor = '#394955';
-                // $catColor = '#4F4789';
-                // $catColor = '#2592c7';
-                // $catColor = '#00d3d0';
+                // $catName = 'Kino, Streaming & TV';
                 $catColor = '#ff79c6'; // Dracula
                 $catDesc = 'News, Berichte und Diskussionenen über Filme & Serien sowie die Leute, die sie machen.';
                 $catOrder = 2;
@@ -146,11 +135,6 @@ function migrateCategories($smf, $fla, $api)
                 break;
             case 9:
                 // $catName = 'Reviews';
-                // $catColor = '#006db0';
-                // $catColor = '#1d5fb5';
-                // $catColor = '#5B3758';
-                // $catColor = '#3182af';
-                // $catColor = '#6c79cf';
                 $catColor = '#bd93f9'; // Dracula
                 $catDesc = 'Besprechungen und Diskussionen über Filme & Serien sowie kurze Reviews.';
                 // $catDesc = 'Reviews zu Filmen & Serien.';
@@ -159,11 +143,6 @@ function migrateCategories($smf, $fla, $api)
                 break;
             case 7:
                 // $catName = 'Hardware & Heimkino';
-                // $catColor = '#004c8a';
-                // $catColor = '#21569c';
-                // $catColor = '#201335';
-                // $catColor = '#387498';
-                // $catColor = '#394955';
                 $catColor = '#ffb86c'; // Dracula
                 $catDesc = 'Alles rund um Player, Verstärker, Lautsprecher, Streaming-Anbieter und das eigene Heimkino.';
                 $catOrder = 4;
@@ -171,23 +150,12 @@ function migrateCategories($smf, $fla, $api)
                 break;
             case 5:
                 // $catName = 'Off-topic';
-                // $catColor = '#002d66';
-                // $catColor = '#4C4C4C';
-                // $catColor = '#3a6581';
-                // $catColor = '#9b467a';
-                // $catColor = '#50fa7b'; // Dracula
                 $catColor = '#6272a4'; // Dracula
                 $catDesc = 'Abseits von bewegten Bildern!';
                 $catOrder = 5;
                 $catIcon = 'fas fa-quote-right';
                 break;
             case 8:
-                // $catColor = '#41efb5';
-                // $catColor = '#006b61';
-                // $catColor = '#636363';
-                // $catColor = '#3b576a';
-                // $catColor = '#8c7357';
-                // $catColor = '#6272a4'; // Dracula
                 $catColor = '#44475a'; // Dracula
                 $catDesc = 'Deals, Schnäppchen und Kaufempfehlungen sowie private Angebote & Gesuche.';
                 $catOrder = 6;
@@ -195,21 +163,12 @@ function migrateCategories($smf, $fla, $api)
                 break;
             case 3:
                 // $catName = 'Mods & Admin';
-                // $catColor = '#b7548e';
-                // $catColor = '#ff0037';
-                // $catColor = '#f86961';
-                // $catColor = '#E74C3C';
-                // $catColor = '#80349e';
-                // $catColor = '#f16b83';
                 $catColor = '#ff5555'; // Dracula
                 $catDesc = 'Nur für Mods & Admins sichtbar!';
                 $catOrder = 7;
                 $catIcon = 'fas fa-user-lock';
                 break;
             default:
-                // $catColor = '#cccccc';
-                // $catColor = '#4C4C4C';
-                // $catColor = '#6272a4'; // Dracula
                 $catColor = '#44475a'; // Dracula
                 $catDesc = '';
                 $catOrder = $row->catOrder;
@@ -696,6 +655,9 @@ function migratePosts($smf, $fla, $api)
         -- AND t.ID_TOPIC in (27647)
         -- AND t.ID_TOPIC in (27930)
         -- AND t.ID_TOPIC in (228,9855,26266,26944,26962,27930)
+        -- AND t.ID_TOPIC in (6519,1013,3574,3586,9985,9986,9987,13281,14269,26069,26325,26403,26448,26477,26636,27160,27647) -- tests to convert internal links
+        -- AND t.ID_TOPIC in (6519,13281,14269,26069,26325,26403,26448,26477)
+        -- AND t.ID_TOPIC in (3574,3586,26636,27160,27647)
         -- AND t.ID_TOPIC >= 27000
         ORDER BY m.posterTime, t.ID_TOPIC
 SQL;
@@ -867,8 +829,8 @@ SQL;
                             $fofUploadResponse = json_decode($response->getBody(), true);
                             // print_r($fofUploadResponse);
 
-                            // update actor_id for file-attachment in database
-                            $fla->query("UPDATE fof_upload_files SET actor_id = ".$post->fla_id." WHERE id = ".$fofUploadResponse['data'][0]['id']);
+                            // update actor_id for file-attachment in database; fallback to ID 1 (fladmin)
+                            $fla->query("UPDATE fof_upload_files SET actor_id = ".(is_int($post->fla_id) ? $post->fla_id : 1)." WHERE id = ".$fofUploadResponse['data'][0]['id']);
 
                             // prepare BBCode to attach at end of Post
                             $fileAttachmentBBCode = $fileAttachmentBBCode."\n\n".$fofUploadResponse['data'][0]['attributes']['bbcode'];
@@ -886,7 +848,7 @@ SQL;
                 ':number' => $post_counter++,
                 ':created_at' => convertTimestamp($post->posterTime),
                 ':user_id' => $post->fla_id,
-                ':content' => Smf2FlarumFormatterBundle::parse(replaceBodyStrings($post->body).$fileAttachmentBBCode)
+                ':content' => Smf2FlarumFormatterBundle::parse(replaceBodyStrings($post->body, true, true).$fileAttachmentBBCode)
             );
             $insert_post->execute($data);
             // $insert_post->debugDumpParams();
@@ -920,7 +882,7 @@ SQL;
 /**
  * Utility function to replace some characters prior to storing in Flarum.
  */
-function replaceBodyStrings($str, $replaceSmileys = true)
+function replaceBodyStrings($str, $replaceSmileys = true, $convertInternalLinks = false)
 {
     // Line-Breaks
     $str = preg_replace("/\<br\>/", "\n", $str);
@@ -1036,53 +998,51 @@ function replaceBodyStrings($str, $replaceSmileys = true)
         $str = preg_replace("/;-\)/", "😉", $str);
     }
 
+    if ($convertInternalLinks) {
+        $str = convertInternalLinks($str);
+    }
+
     return $str;
 }
 
 /**
  * Utility function to compute slugs for topics, categories and boards.
  */
-function slugify($text)
+function slugify($str)
 {
-    ///////////////////////////////////////////////////////////////////////
-    // // entfernt HTML und PHP Tags aus der URL,falls es solche gibt
-    $text = strip_tags($text);
+    // remove all tags
+    $str = strip_tags($str);
 
-    // Sonderzeichen umwandeln
-    $text = str_replace('&nbsp;', ' ', $text);
-    $text = str_replace('&quot;', '', $text);
-    $text = str_replace('&amp;', 'und', $text);
-    $text = str_replace('&', 'und', $text);
-    // (ab PHP 5.2.3 wandelt htmlentites bei Bedarf bereits umgewandelte Zeichen nicht nochmals um)
-    $text = htmlentities($text);
-    // $text = htmlentities($text, ENT_COMPAT | ENT_HTML401, 'ISO-8859-1', false);
+    // convert html entities
+    $str = str_replace('&nbsp;', ' ', $str);
+    $str = str_replace('&quot;', '', $str);
+    $str = str_replace('&amp;', 'und', $str);
+    $str = str_replace('&', 'und', $str);
+    $str = htmlentities($str);
 
-    //$text = preg_replace('~&#x([0-9a-f]+);~ei', '', $text);
-    $text = preg_replace_callback('~&#x([0-9a-f]+);~', function ($match) { return ''; }, $text);
-    //$text = preg_replace('~&#([0-9]+);~e', '', $text);
-    $text = preg_replace_callback('~&#([0-9]+);~', function ($match) { return ''; }, $text);
-    $text = preg_replace(array('/&szlig;/','/&(..)lig;/','/&([aouAOU])uml;/','/&(.)[^;]*;/'), array('ss',"$1","$1".'e',"$1"), $text);
-    $text = str_replace('&', 'und', $text);
+    // convert unicode characters
+    $str = preg_replace_callback('~&#x([0-9a-f]+);~', function ($match) { return ''; }, $str);
+    $str = preg_replace_callback('~&#([0-9]+);~', function ($match) { return ''; }, $str);
 
-    // alles klein, Leerzeichen mit - ersetzen
-    $text = strtolower($text);
-    $text = trim($text);
-    $text = str_replace(' ', '-', $text);
-    $text = preg_replace('([^+a-z0-9-_])', '', $text);
-    // mehrfache vorkommen von '-' wird ersetzt
-    //$text = ereg_replace('-{2,}', '-', $text);
-    $text = preg_replace('/-{2,}/', '-', $text);
-    //$text = ereg_replace('-$', '', $text);
-    $text = preg_replace('/-$/', '', $text);
+    // convert special german characters (ßäöü)
+    $str = preg_replace(array('/&szlig;/','/&(..)lig;/','/&([aouAOU])uml;/','/&(.)[^;]*;/'), array('ss',"$1","$1".'e',"$1"), $str);
+    $str = str_replace('&', 'und', $str);
 
-    ///////////////////////////////////////////////////////////////////////
-    // echo $text."\n";
+    // lowercase and spaces as -
+    $str = strtolower($str);
+    $str = trim($str);
+    $str = str_replace(' ', '-', $str);
+    $str = preg_replace('([^+a-z0-9-_])', '', $str);
+    // remove multiple '-'
+    $str = preg_replace('/-{2,}/', '-', $str);
+    $str = preg_replace('/-$/', '', $str);
 
-    if (empty($text)) {
+    // if nothing is left, use 'n-a'
+    if (empty($str)) {
         return 'n-a';
     }
 
-    return $text;
+    return $str;
 }
 
 /**
@@ -1098,33 +1058,50 @@ function convertTimestamp($unixTimestamp) {
 /**
  * Convert old internal SMF URLs to new Flarum URLs
  */
-function convertInternalLinks($text,$post_counter)
+function convertInternalLinks($str)
 {
-    $discussion_id = 0;
-    $post_id = 0;
-    $replacements = 0;
+    // prepare smf_url for regular expressions
+    $smfUrl = str_replace('https', 'https?', preg_quote(smf_url, "/"));
 
-    // Example: http://www.smf2forum.bla/index.php?topic=25645.msg276350#msg276350
-    // Regular expression - www.forum.bla is of course a totally made up name. Substitute it with your site URL
-    $regexp = '/https?:\/\/www\.dvdnarr\.com\/community\/index.php\?(topic=(\d+))+(\.msg(\d+))+(\#msg\d+)/is';
+    // https://example.com/community/index.php?topic=27160.0
+    // https://example.com/community/index.php?topic=27999.msg343450#msg343450
+    $regexp = '/'.$smfUrl.'index.php\?(topic=(\d+))+(\.(msg|d*)(\d+))*+(\#msg\d+)*/is';
+    $results = preg_match_all($regexp, $str, $matches);
+    if ($results) {
+        // @ToDo add handling for post-number; not sure if this is going to happen!
+        // print_r($matches);
+        $str = preg_replace($regexp, fla_url."d/$2".("$5" != 0 ? '' : ''), $str);
+    }
 
-    // There are no internal links in this post, return it as it was
-    $results = preg_match_all($regexp,$text,$matches);
-    if (!$results) return $text;
+    // http://example.com/community/index.php/topic,19844.0.html
+    // http://example.com/community/index.php/topic,19844.msg343450.html
+    $regexp = '/'.$smfUrl.'index.php\/(topic,(\d+))+(\.(msg|d*)(\d+))*+((\#msg\d+)|.html)*/is';
+    $results = preg_match_all($regexp, $str, $matches);
+    if ($results) {
+        // @ToDo add handling for post-number; not sure if this is going to happen!
+        // print_r($matches);
+        $str = preg_replace($regexp, fla_url."d/$2".("$5" != 0 ? '' : ''), $str);
+    }
 
-    // Do the actual replacement using rhe regular expression
-    // As before www.forum.bla is totally made up. Substitute it with your site URL.
-    // It might still be the smf2 website name, or something new.
-    $text = preg_replace($regexp,"http://dev.dvdnarr.com/d/$2/$post_counter",$text);
-    return $text;
+    // Replace very old phpBB Links
+    // https://example.com/forum/viewtopic.php?t=3574
+    $smfUrl = str_replace('community', 'forum', $smfUrl);
+    $regexp = '/'.$smfUrl.'viewtopic.php\?(t=(\d+)(.*))*/is';
+    $results = preg_match_all($regexp, $str, $matches);
+    if ($results) {
+        // print_r($matches);
+        $str = preg_replace($regexp, fla_url."d/$2", $str);
+    }
+
+    return $str;
 }
 
 /**
  * Asks a user a confirmation message and returns true or false based on yes/no.
  */
-function confirm($text)
+function confirm($prompt)
 {
-    echo "Migrate $text? ";
+    echo "Migrate $prompt? ";
     $str = trim(strtolower(fgets(STDIN)));
 
     switch ($str)
