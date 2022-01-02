@@ -67,6 +67,27 @@ try
     $configurator->saveBundle('Smf2FlarumFormatterBundle', '/tmp/Smf2FlarumFormatterBundle.php');
     include '/tmp/Smf2FlarumFormatterBundle.php';
 
+    // Create an array for all posts, to save the determined Flarum posts.number to link to
+    $sql = <<<SQL
+        SELECT m.ID_TOPIC, m.ID_MSG
+        FROM `smf_messages` m
+        ORDER BY m.ID_TOPIC, m.posterTime
+SQL;
+    $posts = $smf->query($sql);
+    $posts->setFetchMode(PDO::FETCH_OBJ);
+
+    // determine posts.number
+    $postsNumber = array();
+    $currentTopic = null;
+    while ($post = $posts->fetch()) {
+        if ($currentTopic != $post->ID_TOPIC) {
+            $currentTopic = $post->ID_TOPIC;
+            $number = 0;
+        }
+        $postsNumber[$post->ID_MSG] = ++$number;
+    }
+    // print_r($postsNumber);
+
     // Start the migration process
     if (confirm("Categories"))          migrateCategories($smf, $fla, $api);
     if (confirm("Boards"))              migrateBoards($smf, $fla, $api);
@@ -633,7 +654,7 @@ function migratePosts($smf, $fla, $api)
     $fla->exec('DELETE FROM `fof_upload_files`');
     $fla->exec('ALTER TABLE `fof_upload_files` AUTO_INCREMENT = 1');
 
-    // SQL query to fetch the topics from the SMF database
+    // SQL query to fetch the topics from the SMF database to migrate
     $sql = <<<SQL
         SELECT
             t.ID_TOPIC, t.ID_MEMBER_STARTED, t.ID_BOARD, m.subject, m.posterTime, m.posterName, t.numReplies, t.locked, t.isSticky,
@@ -1066,29 +1087,46 @@ function convertInternalLinks($str)
     // https://example.com/community/index.php?topic=27160.0
     // https://example.com/community/index.php?topic=27999.msg343450#msg343450
     $regexp = '/'.$smfUrl.'index.php\?(topic=(\d+))+(\.(msg|d*)(\d+))*+(\#msg\d+)*/is';
-    $results = preg_match_all($regexp, $str, $matches);
-    if ($results) {
-        // @ToDo add handling for post-number; not sure if this is going to happen!
-        // print_r($matches);
-        $str = preg_replace($regexp, fla_url."d/$2".("$5" != 0 ? '' : ''), $str);
+    if (preg_match_all($regexp, $str, $matches)) {
+        $str = preg_replace_callback(
+            $regexp,
+            function ($matches) {
+                global $postsNumber;
+                // print_r($matches);
+                if (array_key_exists('5', $matches) && $matches[5] != 0) {
+                    return fla_url."d/".$matches[2]."/".$postsNumber[$matches[5]];
+                } else {
+                    return fla_url."d/".$matches[2];
+                }
+            },
+            $str
+        );
     }
 
     // http://example.com/community/index.php/topic,19844.0.html
     // http://example.com/community/index.php/topic,19844.msg343450.html
     $regexp = '/'.$smfUrl.'index.php\/(topic,(\d+))+(\.(msg|d*)(\d+))*+((\#msg\d+)|.html)*/is';
-    $results = preg_match_all($regexp, $str, $matches);
-    if ($results) {
-        // @ToDo add handling for post-number; not sure if this is going to happen!
-        // print_r($matches);
-        $str = preg_replace($regexp, fla_url."d/$2".("$5" != 0 ? '' : ''), $str);
+    if (preg_match_all($regexp, $str, $matches)) {
+        $str = preg_replace_callback(
+            $regexp,
+            function ($matches) {
+                global $postsNumber;
+                // print_r($matches);
+                if (array_key_exists('5', $matches) && $matches[5] != 0) {
+                    return fla_url."d/".$matches[2]."/".$postsNumber[$matches[5]];
+                } else {
+                    return fla_url."d/".$matches[2];
+                }
+            },
+            $str
+        );
     }
 
     // Replace very old phpBB Links
     // https://example.com/forum/viewtopic.php?t=3574
     $smfUrl = str_replace('community', 'forum', $smfUrl);
     $regexp = '/'.$smfUrl.'viewtopic.php\?(t=(\d+)(.*))*/is';
-    $results = preg_match_all($regexp, $str, $matches);
-    if ($results) {
+    if (preg_match_all($regexp, $str, $matches)) {
         // print_r($matches);
         $str = preg_replace($regexp, fla_url."d/$2", $str);
     }
