@@ -123,8 +123,7 @@ function migrateCategories($smf, $fla, $api)
     $done = 0;
 
     // For each category in the SMF backend
-    while ($row = $stmt->fetch())
-    {
+    while ($row = $stmt->fetch()) {
         // Display percentage
         $done++;
         echo "Migrating categories: " . $done . "/" . $total . " (" . ((int) ($done / $total * 100)) . "%)\r";
@@ -462,8 +461,7 @@ SQL;
     // $userId = 2;
 
     // For each user in the SMF database
-    while ($row = $stmt->fetch())
-    {
+    while ($row = $stmt->fetch()) {
         // Update and display the progess info
         $done++;
         echo "Migrating users: " . $done . "/" . $total . " (" . ((int) ($done / $total * 100)) . "%)\r";
@@ -494,8 +492,7 @@ SQL;
             $row->websiteUrl !== "" ? '[{"title":"' . ($row->websiteTitle !== "" ? $row->websiteTitle : $row->websiteUrl) . '","url":"' . $row->websiteUrl . '","icon":"fas fa-globe","favicon":"none"}]' : NULL
         );
 
-        try
-        {
+        try {
             // Insert the user into the database
             $insert->execute($data);
 
@@ -505,29 +502,22 @@ SQL;
                 $groupMap[(int) $row->ID_GROUP]
             );
 
-            try
-            {
+            try {
                 // Insert the group record into the database
                 $insert2->execute($data);
 
                 // Insert the helper record into the helper table
                 $insert_helper->execute(array($row->ID_MEMBER, $userId));
-            }
-            catch (Exception $e)
-            {
+            } catch (Exception $e) {
                 echo "Error while updating member group for the following user:\n";
                 var_dump($data);
                 echo "The message was: " . $e->getMessage() . "\n";
             }
-        }
-        catch (Exception $e)
-        {
+        } catch (Exception $e) {
             echo "Error while porting the following user:\n";
             var_dump($row);
             echo "The message was: " . $e->getMessage() . "\n";
-        }
-        finally
-        {
+        } finally {
             // we use the original SMF Member IDs!
             // $userId++;
         }
@@ -804,8 +794,7 @@ SQL;
         // $insert_discussion_tag->debugDumpParams();
 
         // Migrate Posts
-        while ($post = $posts->fetch())
-        {
+        while ($post = $posts->fetch()) {
             // Update and display the progess info
             $postsDone++;
             echo "\033[2K\r"; // clear line
@@ -1142,8 +1131,7 @@ function confirm($prompt)
     echo "Migrate $prompt? ";
     $str = trim(strtolower(fgets(STDIN)));
 
-    switch ($str)
-    {
+    switch ($str) {
         case "yes":
         case "y":
         case "true":
