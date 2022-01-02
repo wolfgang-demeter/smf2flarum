@@ -8,6 +8,11 @@ This script is based on https://github.com/sriharshachilakapati/JGO-Flarum-Migra
 **ATTENTION: This will not run out of the box! You most certainly have to modify this script to meet your needs!**
 
 ## Required Extension
+### Upload by FriendsOfFlarum
+File Attachments from SMF get uploaded to Flarum.
+
+https://discuss.flarum.org/d/4154-friendsofflarum-upload-the-intelligent-file-attachment-extension
+
 ### User Bio by FriendsOfFlarum
 Some user information from SMF will be stored as biography.
 
