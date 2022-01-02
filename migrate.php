@@ -687,11 +687,11 @@ function migratePosts($smf, $fla, $api)
             `flarum_migrated_users` u ON t.ID_MEMBER_STARTED = u.smf_id
         WHERE t.ID_BOARD != 35 -- do not migrate content of board "Papierkorb" (Recycle Bin)
         -- AND t.ID_TOPIC in (228,471,499,1039,1687,1693,9855,15626,17729,26865,27624,27647,27603,27823)
-        -- AND t.ID_TOPIC > 27000 OR t.ID_TOPIC in (228,298,471,499,1039,6788,1687,11071,1693,6519,9855,14641,15626,17143,17729,21389,26266,26636,26738,26865,26944,26962,27624,27647,27603,27823)
+        -- AND t.ID_TOPIC > 27000 OR t.ID_TOPIC in (228,298,471,499,832,1039,1412,6788,1687,11071,1693,6519,9855,14641,14981,15626,17143,17729,21389,26266,26636,26738,26865,26944,26962) -- some test- and edge-cases with current topics
         -- AND t.ID_TOPIC in (298)
         -- AND t.ID_TOPIC in (499,11071)
         -- AND t.ID_TOPIC in (11071)
-        -- AND t.ID_TOPIC in (14641,21389,26636,27160,27430)
+        -- AND t.ID_TOPIC in (832,1412,14641,14981,21389,26636,27160,27430)
         -- AND t.ID_TOPIC in (27160)
         -- AND t.ID_TOPIC in (27647)
         -- AND t.ID_TOPIC in (27930)
@@ -703,8 +703,8 @@ SQL;
     $topics->setFetchMode(PDO::FETCH_OBJ);
 
     // Counters for displaying the progress info
-    $total = $smf->query('SELECT COUNT(*) FROM `smf_topics`')->fetchColumn();
-    $done = 0;
+    $topicsTotal = $smf->query('SELECT COUNT(*) FROM `smf_topics`')->fetchColumn();
+    $topicsDone = 0;
 
     // SQL statement to insert the topic into the Flarum backend
     $sql = <<<SQL
@@ -777,9 +777,12 @@ SQL;
     // Migrate Topics
     while ($topic = $topics->fetch()) {
         // Update and display the progess info
-        $done++;
+        $topicSlug = slugify($topic->subject);
+        $topicsDone++;
+        $postsTotal = $topic->numReplies + 1;
+        $postsDone = 0;
         echo "\033[2K\r"; // clear line
-        echo "Migrating topic " . $done . "/" . $total . " (" . ((int) ($done / $total * 100)) . "%) // Topic ID: ". $topic->ID_TOPIC . " // number of Posts: " . ($topic->numReplies + 1) . " // Slug: " . slugify($topic->subject) . "\r";
+        echo "Migrating topic ".$topicsDone."/".$topicsTotal." (".((int) ($topicsDone / $topicsTotal * 100))."%) // Topic ID: ".$topic->ID_TOPIC." // number of Posts: ".$postsDone."/".$postsTotal." (0%) // Slug: ".$topicSlug."\r";
 
         $sql = <<<SQL
             SELECT m.ID_MSG, m.body, m.posterTime, u.fla_id
@@ -820,18 +823,27 @@ SQL;
         // Migrate Posts
         while ($post = $posts->fetch())
         {
+            // Update and display the progess info
+            $postsDone++;
+            echo "\033[2K\r"; // clear line
+            echo "Migrating topic ".$topicsDone."/".$topicsTotal." (".((int) ($topicsDone / $topicsTotal * 100))."%) // Topic ID: ".$topic->ID_TOPIC." // number of Posts: ".$postsDone."/".$postsTotal." (".((int) ($postsDone / $postsTotal * 100))."%) // Slug: ".$topicSlug."\r";
+
             // Migrate Attachments if any
             $fileAttachmentBBCode = '';
             if (array_key_exists($post->ID_MSG, $attachments)) {
                 foreach($attachments[$post->ID_MSG] as $attachment) {
                     // print_r($attachment);
-                    // Some attachments are restricted by threads/permissions. We can access them via the file_hash if available - otherwise try the dlattach-url
+                    // Some attachments are restricted by threads/permissions. We can access them via the file_hash if available - otherwise try the old SMF schema with md5 of filename
                     if ($attachment['file_hash'] != '') {
                         // /attachments/1966_554bc900ba11a55f51cf75a21fe930c21fc99796
                         $attachmentUrl = smf_url."attachments/".$attachment['ID_ATTACH']."_".$attachment['file_hash'];
                     } else {
                         // /index.php?action=dlattach;topic=14641.0;attach=206;image
-                        $attachmentUrl = smf_url."index.php?action=dlattach;topic=".$topic->ID_TOPIC.".0;attach=".$attachment['ID_ATTACH'].";image";
+                        // $attachmentUrl = smf_url."index.php?action=dlattach;topic=".$topic->ID_TOPIC.".0;attach=".$attachment['ID_ATTACH'].";image";
+
+                        // /attachments/828_Foto7_jpg47460f64d0fd5700d62fa6894d2f8ad4
+                        // md5 of $attachment['filename']
+                        $attachmentUrl = smf_url."attachments/".$attachment['ID_ATTACH']."_".str_replace(array('.', ' '), '_', $attachment['filename']).md5(str_replace(' ', '_', $attachment['filename']));
                     }
                     echo "\033[2K\r"; // clear line
                     echo "Migrating attachment ID ".$attachment['ID_ATTACH']." of User ID ".$post->fla_id." for Topic ID: ".$topic->ID_TOPIC." // URL: ".$attachmentUrl."\r";
@@ -861,7 +873,7 @@ SQL;
                             // prepare BBCode to attach at end of Post
                             $fileAttachmentBBCode = $fileAttachmentBBCode."\n\n".$fofUploadResponse['data'][0]['attributes']['bbcode'];
                         } catch (ClientException $e) {
-                            echo "FAILED migrating attachment ID ".$attachment['ID_ATTACH']." of User ID ".$post->fla_id." for Topic ID: ".$topic->ID_TOPIC." // URL: ".$attachmentUrl."\n";
+                            echo "FAILED migrating attachment ID: ".$attachment['ID_ATTACH']." with filename '".$attachment['filename']."' of User ID: ".$post->fla_id." for Topic ID: ".$topic->ID_TOPIC." // URL: ".$attachmentUrl."\n";
                         }
                     }
                 }
@@ -900,12 +912,6 @@ SQL;
         );
         $update_topic->execute($data);
         // $update_topic->debugDumpParams();
-
-        // Limit Migration for Testing
-        // if ($topic->ID_TOPIC >= 500) {
-        //     echo "\n";
-        //     return;
-        // }
     }
 
     echo "\n";
