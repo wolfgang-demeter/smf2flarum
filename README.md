@@ -7,7 +7,7 @@ This script is based on https://github.com/sriharshachilakapati/JGO-Flarum-Migra
 
 **ATTENTION: This will not run out of the box! You most certainly have to modify this script to meet your needs!**
 
-## Required Extension
+## Required Extensions
 ### Upload by FriendsOfFlarum
 File Attachments from SMF get uploaded to Flarum.
 
