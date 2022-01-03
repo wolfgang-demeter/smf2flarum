@@ -657,7 +657,7 @@ function migratePosts($smf, $fla, $api)
             `flarum_migrated_users` u ON t.ID_MEMBER_STARTED = u.smf_id
         WHERE t.ID_BOARD != 35 -- do not migrate content of board "Papierkorb" (Recycle Bin)
         -- AND t.ID_TOPIC in (228,471,499,1039,1687,1693,9855,15626,17729,26865,27624,27647,27603,27823)
-        -- AND t.ID_TOPIC > 27000 OR t.ID_TOPIC in (228,298,471,499,832,1039,1412,6788,1687,11071,1693,6519,9855,14641,14981,15626,17143,17729,21389,26266,26636,26738,26865,26944,26962) -- some test- and edge-cases with current topics
+        -- AND t.ID_TOPIC > 27000 OR t.ID_TOPIC in (228,298,471,499,832,1039,1412,1687,6788,11071,1693,6519,9855,14571,14641,14790,14833,14981,15260,15380,15559,15626,17143,17225,17526,17729,18155,20607,21389,26266,26636,26738,26865,26944,26962) -- some test- and edge-cases with current topics
         -- AND t.ID_TOPIC in (298)
         -- AND t.ID_TOPIC in (499,11071)
         -- AND t.ID_TOPIC in (11071)
@@ -669,6 +669,7 @@ function migratePosts($smf, $fla, $api)
         -- AND t.ID_TOPIC in (6519,1013,3574,3586,9985,9986,9987,13281,14269,26069,26325,26403,26448,26477,26636,27160,27647) -- tests to convert internal links
         -- AND t.ID_TOPIC in (6519,13281,14269,26069,26325,26403,26448,26477)
         -- AND t.ID_TOPIC in (3574,3586,26636,27160,27647)
+        -- AND t.ID_TOPIC in (14571,14790,14833,15260,15380,15559,17225,17526,18155,20607,27160) -- transfer some special file attachments
         -- AND t.ID_TOPIC >= 27000
         ORDER BY m.posterTime, t.ID_TOPIC
 SQL;
@@ -810,12 +811,27 @@ SQL;
                         // /attachments/1966_554bc900ba11a55f51cf75a21fe930c21fc99796
                         $attachmentUrl = smf_url."attachments/".$attachment['ID_ATTACH']."_".$attachment['file_hash'];
                     } else {
-                        // /index.php?action=dlattach;topic=14641.0;attach=206;image
-                        // $attachmentUrl = smf_url."index.php?action=dlattach;topic=".$topic->ID_TOPIC.".0;attach=".$attachment['ID_ATTACH'].";image";
+                        // due to some special charachters the filenames of attachments with the following IDs can not easily re-created with the information at hand
+                        $wrongFileNames = array(
+                            365 => '365_Presseserver_Paramount_jpg19d0ae52e2d68e80f48f198b63caaea8',
+                            417 => '417_Saga_7_jpg68c90cbc6fd78ae8b29da4a974c4d311',
+                            419 => '419_Saga_8_jpg638da212f0da696d84c80fd68e5749dd',
+                            499 => '499_My_Life_-_Jeder_Augenblick_zAhlt_1_jpg2aa0ae17e3d727b4b9a3fc428e0f04f2',
+                            501 => '501_My_Life_-_Jeder_Augenblick_zAhlt_2_jpgd8681991ceee92e8d5c6f3f9a75418ff',
+                            530 => '530_NotenschlAssel_jpgcdb6b41cbcda6abf1b50bebd54b8e8ef',
+                            532 => '532_NotenschlAssel_jpgcdb6b41cbcda6abf1b50bebd54b8e8ef',
+                        );
 
-                        // /attachments/828_Foto7_jpg47460f64d0fd5700d62fa6894d2f8ad4
-                        // md5 of $attachment['filename']
-                        $attachmentUrl = smf_url."attachments/".$attachment['ID_ATTACH']."_".str_replace(array('.', ' '), '_', $attachment['filename']).md5(str_replace(' ', '_', $attachment['filename']));
+                        if (array_key_exists($attachment['ID_ATTACH'], $wrongFileNames)) {
+                            $attachmentUrl = smf_url."attachments/".$wrongFileNames[$attachment['ID_ATTACH']];
+                        } else {
+                            // /index.php?action=dlattach;topic=14641.0;attach=206;image
+                            // $attachmentUrl = smf_url."index.php?action=dlattach;topic=".$topic->ID_TOPIC.".0;attach=".$attachment['ID_ATTACH'].";image";
+
+                            // /attachments/828_Foto7_jpg47460f64d0fd5700d62fa6894d2f8ad4
+                            // md5 of $attachment['filename']
+                            $attachmentUrl = smf_url."attachments/".$attachment['ID_ATTACH']."_".str_replace(array('.', ' '), '_', $attachment['filename']).md5(str_replace(' ', '_', $attachment['filename']));
+                        }
                     }
                     echo "\033[2K\r"; // clear line
                     echo "Migrating attachment ID ".$attachment['ID_ATTACH']." of User ID ".$post->fla_id." for Topic ID: ".$topic->ID_TOPIC." // URL: ".$attachmentUrl."\r";
@@ -1128,7 +1144,7 @@ function convertInternalLinks($str)
  */
 function confirm($prompt)
 {
-    echo "Migrate $prompt? ";
+    echo "Migrate $prompt? (y/n) ";
     $str = trim(strtolower(fgets(STDIN)));
 
     switch ($str) {
