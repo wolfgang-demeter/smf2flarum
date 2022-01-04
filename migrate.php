@@ -64,6 +64,9 @@ try
         ''
     );
 
+    // Disable parsing of [spoiler] and use it as is. We replace and "parse" this ourselves in replaceWithMarkdown()
+    $configurator->BBCodes->delete('SPOILER');
+
     $configurator->saveBundle('Smf2FlarumFormatterBundle', '/tmp/Smf2FlarumFormatterBundle.php');
     include '/tmp/Smf2FlarumFormatterBundle.php';
 
@@ -876,7 +879,7 @@ SQL;
                 ':number' => $post_counter++,
                 ':created_at' => convertTimestamp($post->posterTime),
                 ':user_id' => $post->fla_id,
-                ':content' => Smf2FlarumFormatterBundle::parse(replaceBodyStrings($post->body, true, true).$fileAttachmentBBCode)
+                ':content' => replaceWithParsedMarkdown(Smf2FlarumFormatterBundle::parse(replaceBodyStrings($post->body, true, true).$fileAttachmentBBCode))
             );
             $insert_post->execute($data);
             // $insert_post->debugDumpParams();
@@ -1029,6 +1032,18 @@ function replaceBodyStrings($str, $replaceSmileys = true, $convertInternalLinks 
     if ($convertInternalLinks) {
         $str = convertInternalLinks($str);
     }
+
+    return $str;
+}
+
+/**
+ * Utility function to replace some characters with Markdown before storing in Flarum
+ * This must be called AFTER TextFormatter::parse() or Smf2FlarumFormatterBundle::parse() respectively
+ */
+function replaceWithParsedMarkdown($str)
+{
+    // Replace [spoiler] with Markdowns inline spoiler (and not as HTML-details element)
+    $str = preg_replace("/\[spoiler\](.*)\[\/spoiler\]/", "<ISPOILER><s>&gt;!</s>$1<e>!&lt;</e></ISPOILER>", $str);
 
     return $str;
 }
