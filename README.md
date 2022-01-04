@@ -16,10 +16,10 @@ cd smf2flarum-migrate
 git clone git@github.com:wolfgang-demeter/smf2flarum.git .
 composer install
 cp settings.sample.php settings.php
-# settings.php - edit your configuration
-# migrate.php - edit the mapping-arrays and specific code-blocks to match your needs
-php ./migrate.php
 ```
+Edit `settings.php` with the configuration for your SMF and Flarum installations. Also [create an **API-Token**](https://github.com/flagrow/flarum-api-client#configuration) in your Flarum database. The Flarum-API will be used to migrate Avatars and Attachments.
+
+You almost certainly have to edit some mapping-arrays and specific code-blocks to match your needs in `migrate.php`.
 
 ### MySQL
 If you have a lot of data to migrate, it could be necessary to increase the `sort_buffer_size` of MySQL.
