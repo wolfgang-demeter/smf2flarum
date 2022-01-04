@@ -228,6 +228,7 @@ function migrateBoards($smf, $fla, $api)
     $secTags['animation-und-zeichentrick'] = array('desc' => 'Alles rund um Animes & Zeichentrickfilme.', 'color' => '#6272a4', 'icon' => 'fas fa-dragon');
     $secTags['musik'] = array('desc' => 'Alles rund um Musik.', 'color' => '#6272a4', 'icon' => 'fas fa-music');
     $secTags['games'] = array('desc' => 'Alles rund um Games.', 'color' => '#6272a4', 'icon' => 'fas fa-gamepad');
+    $secTags['podcast'] = array('desc' => 'NarrenTalk - Der DVDnarr.com Podcast.', 'color' => '#6272a4', 'icon' => 'fas fa-podcast');
     $secTagsInserted = array();
 
     // Create a helper table for all the boards, which stores the SMF board ids with the Flarum equivalents
@@ -632,7 +633,6 @@ function updateUserCounters($smf, $fla, $api)
     echo "\n";
 }
 
-
 /**
  * Function to migrate the posts from the SMF backend to the new Flarum backend. Uses the default bundle to transform
  * the posts data from BBCode into the data format of Flarum.
@@ -675,7 +675,7 @@ function migratePosts($smf, $fla, $api)
         -- AND t.ID_TOPIC in (6519,13281,14269,26069,26325,26403,26448,26477)
         -- AND t.ID_TOPIC in (3574,3586,26636,27160,27647)
         -- AND t.ID_TOPIC in (14571,14790,14833,15260,15380,15559,17225,17526,18155,20607,27160) -- transfer some special file attachments
-        -- AND t.ID_TOPIC >= 27000
+        -- AND t.ID_TOPIC >= 27900
         ORDER BY m.posterTime, t.ID_TOPIC
 SQL;
     $topics = $smf->query($sql);
