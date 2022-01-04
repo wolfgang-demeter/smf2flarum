@@ -1161,6 +1161,11 @@ function convertInternalLinks($str)
  */
 function confirm($prompt)
 {
+    global $argv;
+    if (array_key_exists(1, $argv) && $argv[1] == '--runall') {
+        return true;
+    }
+
     echo "Migrate $prompt? (y/n) ";
     $str = trim(strtolower(fgets(STDIN)));
 
