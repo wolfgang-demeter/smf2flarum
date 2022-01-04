@@ -861,7 +861,7 @@ SQL;
                             // print_r($fofUploadResponse);
 
                             // update actor_id for file-attachment in database; fallback to ID 1 (fladmin)
-                            $fla->query("UPDATE fof_upload_files SET actor_id = ".(is_int($post->fla_id) ? $post->fla_id : 1)." WHERE id = ".$fofUploadResponse['data'][0]['id']);
+                            $fla->query("UPDATE fof_upload_files SET actor_id = ".($post->fla_id ? $post->fla_id : 1)." WHERE id = ".$fofUploadResponse['data'][0]['id']);
 
                             // prepare BBCode to attach at end of Post
                             $fileAttachmentBBCode = $fileAttachmentBBCode."\n\n".$fofUploadResponse['data'][0]['attributes']['bbcode'];
