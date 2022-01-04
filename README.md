@@ -38,13 +38,13 @@ systemctl restart mysql.service
 
 ## Migration
 ### Clear Avatars & Attachments
-It might be a good idea to clear existing **avatars** and **assets/files** from Flarum.
+It might be a good idea to clear existing **avatars** and **assets/files** from Flarum beforehand.
 ```bash
 rm -v /path/to/flarum/public/assets/avatars/*.png
 rm -rfv /path/to/flarum/public/assets/files/*
 ```
 
-####  Skript ausführen
+### Run the script
 Run the migration script. You have to confirm each step with **yes** or **no**.
 ```bash
 php ./migrate.php
@@ -56,6 +56,8 @@ php ./migrate.php --runall
 ```
 
 ## Required Extensions
+The following extensions to Flarum are necessary for the migration script.
+
 ### Upload by FriendsOfFlarum
 File Attachments from SMF get migrated to Flarum. Configure this extension before migration.
 
