@@ -438,23 +438,23 @@ SQL;
     // +----+---------------+-------------+---------+---------------+-----------+
     //
     // This map exists to ease the conversion from one table to another. Additionally some members in the SMF backend
-    // had the ID_GROUP attribute set to 0, which is not documented in the SMF sources. Hence this script considers everyone
-    // else as the regular members.
+    // had the ID_GROUP attribute set to 0, which is not documented in the SMF sources.
+    // Only Admins and Mods get specific User-Grups. Regular Users don't have to be Members (ID 3)!
     $groupMap = array(
-        0 => 3,
+        0 => NULL,
         1 => 1,
         2 => 4,
         3 => 4,
-        4 => 3,
-        9 => 3,
-        5 => 3,
-        10 => 3,
-        11 => 3,
-        12 => 3,
-        13 => 3,
-        15 => 3,
-        16 => 3,
-        17 => 3
+        4 => NULL,
+        9 => NULL,
+        5 => NULL,
+        10 => NULL,
+        11 => NULL,
+        12 => NULL,
+        13 => NULL,
+        15 => NULL,
+        16 => NULL,
+        17 => NULL
     );
 
     // If you don't want or can't user your original SMF member IDs!
@@ -496,15 +496,17 @@ SQL;
             // Insert the user into the database
             $insert->execute($data);
 
-            // Compute the group record for this user
-            $data = array(
-                $userId,
-                $groupMap[(int) $row->ID_GROUP]
-            );
-
             try {
-                // Insert the group record into the database
-                $insert2->execute($data);
+                if ($groupMap[(int) $row->ID_GROUP]) {
+                    // Compute the group record for this user
+                    $data = array(
+                        $userId,
+                        $groupMap[(int) $row->ID_GROUP]
+                    );
+
+                    // Insert the group record into the database
+                    $insert2->execute($data);
+                }
 
                 // Insert the helper record into the helper table
                 $insert_helper->execute(array($row->ID_MEMBER, $userId));
