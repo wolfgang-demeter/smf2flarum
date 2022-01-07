@@ -683,7 +683,7 @@ function migratePosts($smf, $fla, $api)
     $topics = $smf->query($sql);
     $topics->setFetchMode(PDO::FETCH_OBJ);
 
-    // Counters for displaying the progress info (without BOARD 35 "Papierkorb")
+    // Counters for displaying the progress info
     $topicsTotal = $smf->query('SELECT COUNT(*) FROM `smf_topics` WHERE ID_BOARD not in ('.implode(',', $skipBoards).')')->fetchColumn();
     $topicsDone = 0;
 
