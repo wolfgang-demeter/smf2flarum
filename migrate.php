@@ -681,8 +681,8 @@ SQL;
     $topics = $smf->query($sql);
     $topics->setFetchMode(PDO::FETCH_OBJ);
 
-    // Counters for displaying the progress info
-    $topicsTotal = $smf->query('SELECT COUNT(*) FROM `smf_topics`')->fetchColumn();
+    // Counters for displaying the progress info (without BOARD 35 "Papierkorb")
+    $topicsTotal = $smf->query('SELECT COUNT(*) FROM `smf_topics` WHERE ID_BOARD != 35')->fetchColumn();
     $topicsDone = 0;
 
     // SQL statement to insert the topic into the Flarum backend
@@ -1108,6 +1108,7 @@ function convertInternalLinks($str)
 
     // https://example.com/community/index.php?topic=27160.0
     // https://example.com/community/index.php?topic=27999.msg343450#msg343450
+    // https://example.com/community/index.php?topic=17729.840
     $regexp = '/'.$smfUrl.'index.php\?(topic=(\d+))+(\.(msg|d*)(\d+))*+(\#msg\d+)*/is';
     if (preg_match_all($regexp, $str, $matches)) {
         $str = preg_replace_callback(
