@@ -639,6 +639,10 @@ function updateUserCounters($smf, $fla, $api)
  */
 function migratePosts($smf, $fla, $api)
 {
+    // do not migrate posts from the following boards
+    // - ID 35: do not migrate content of board "Papierkorb" (Recycle Bin)
+    $skipBoards = array(35);
+
     // Clear existing posts from the forum. Also reset the AUTO_INCREMENT values for the tables.
     $fla->exec('DELETE FROM `posts`');
     $fla->exec('ALTER TABLE `posts` AUTO_INCREMENT = 1');
@@ -650,8 +654,7 @@ function migratePosts($smf, $fla, $api)
     $fla->exec('ALTER TABLE `fof_upload_files` AUTO_INCREMENT = 1');
 
     // SQL query to fetch the topics from the SMF database to migrate
-    $sql = <<<SQL
-        SELECT
+    $sql = 'SELECT
             t.ID_TOPIC, t.ID_MEMBER_STARTED, t.ID_BOARD, m.subject, m.posterTime, m.posterName, t.numReplies, t.locked, t.isSticky,
             u.fla_id
         FROM
@@ -660,7 +663,7 @@ function migratePosts($smf, $fla, $api)
             `smf_messages` m ON t.ID_FIRST_MSG = m.ID_MSG
         LEFT JOIN
             `flarum_migrated_users` u ON t.ID_MEMBER_STARTED = u.smf_id
-        WHERE t.ID_BOARD != 35 -- do not migrate content of board "Papierkorb" (Recycle Bin)
+        WHERE t.ID_BOARD not in ('.implode(',', $skipBoards).')
         -- AND t.ID_TOPIC in (228,471,499,1039,1687,1693,9855,15626,17729,26865,27624,27647,27603,27823)
         -- AND t.ID_TOPIC > 27000 OR t.ID_TOPIC in (228,298,471,499,832,1039,1412,1687,6788,11071,1693,6519,9855,14571,14641,14790,14833,14981,15260,15380,15559,15626,17143,17225,17526,17729,18155,20607,21389,26266,26636,26738,26865,26944,26962) -- some test- and edge-cases with current topics
         -- AND t.ID_TOPIC in (298)
@@ -676,13 +679,12 @@ function migratePosts($smf, $fla, $api)
         -- AND t.ID_TOPIC in (3574,3586,26636,27160,27647)
         -- AND t.ID_TOPIC in (14571,14790,14833,15260,15380,15559,17225,17526,18155,20607,27160) -- transfer some special file attachments
         -- AND t.ID_TOPIC >= 27900
-        ORDER BY m.posterTime, t.ID_TOPIC
-SQL;
+        ORDER BY m.posterTime, t.ID_TOPIC';
     $topics = $smf->query($sql);
     $topics->setFetchMode(PDO::FETCH_OBJ);
 
     // Counters for displaying the progress info (without BOARD 35 "Papierkorb")
-    $topicsTotal = $smf->query('SELECT COUNT(*) FROM `smf_topics` WHERE ID_BOARD != 35')->fetchColumn();
+    $topicsTotal = $smf->query('SELECT COUNT(*) FROM `smf_topics` WHERE ID_BOARD not in ('.implode(',', $skipBoards).')')->fetchColumn();
     $topicsDone = 0;
 
     // SQL statement to insert the topic into the Flarum backend
