@@ -73,6 +73,11 @@ The user website from SMF will be stored in the Social Profile extension.
 
 https://discuss.flarum.org/d/18775-friendsofflarum-social-profile
 
+#### Birthdays by datlechin
+Users birthdays will be migrated to this extension.
+
+https://discuss.flarum.org/d/29793-birthdays
+
 ### (optional) BBCode 5 Star Rating by me
 If you have 5 Star Ratings (⭐⭐⭐⭐⭐) in your posts you want to migrate. Adjust the function `replaceBodyStrings()` in `migrate.php` according to your needs.
 
