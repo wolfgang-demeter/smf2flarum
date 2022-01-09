@@ -1,7 +1,7 @@
 **ATTENTION: THIS IS A WORK IN PROGRESS**
 
 # SMF to Flarum Converter
-This will convert a SMF1-based forum to Flarum (v1.0.x).
+This will convert a SMF1-based forum to Flarum (v1.1.x).
 
 This script is based on https://github.com/sriharshachilakapati/JGO-Flarum-Migration/
 
