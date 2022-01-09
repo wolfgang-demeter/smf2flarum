@@ -73,7 +73,7 @@ The user website from SMF will be stored in the Social Profile extension.
 
 https://discuss.flarum.org/d/18775-friendsofflarum-social-profile
 
-#### Birthdays by datlechin
+### Birthdays by datlechin
 Users birthdays will be migrated to this extension.
 
 https://discuss.flarum.org/d/29793-birthdays
