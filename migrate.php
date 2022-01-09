@@ -399,7 +399,7 @@ SQL;
     // The query to insert the new users into the Flarum database
     // We need IGNORE to INSERT non set birthdays with 0000-00-00
     $sql = <<<SQL
-    INSERT IGNORE INTO `users` (id, username, nickname, email, is_email_confirmed, password, bio, joined_at, last_seen_at, marked_all_as_read_at, social_buttons, birthday)
+    INSERT INTO `users` (id, username, nickname, email, is_email_confirmed, password, bio, joined_at, last_seen_at, marked_all_as_read_at, social_buttons, birthday)
         VALUES (
             ?, ?, ?, ?, ?, '', ?, ?, ?, ?, ?, ?
         );
@@ -494,7 +494,7 @@ SQL;
             convertTimestamp($row->lastLogin),
             convertTimestamp($row->lastLogin),
             $row->websiteUrl !== "" ? '[{"title":"' . ($row->websiteTitle !== "" ? $row->websiteTitle : $row->websiteUrl) . '","url":"' . $row->websiteUrl . '","icon":"fas fa-globe","favicon":"none"}]' : NULL,
-            ($row->birthdate !== "0001-01-01" && substr($row->birthdate, 0, 3) !== "000") ? date('Y-m-d', strtotime($row->birthdate)) : "0000-00-00"
+            ($row->birthdate !== "0001-01-01" && substr($row->birthdate, 0, 3) !== "000") ? date('Y-m-d', strtotime($row->birthdate)) : NULL
         );
 
         try {
