@@ -1,5 +1,3 @@
-**ATTENTION: THIS IS A WORK IN PROGRESS**
-
 # SMF to Flarum Converter
 This will convert a SMF1-based forum to Flarum (v1.1.x).
 
