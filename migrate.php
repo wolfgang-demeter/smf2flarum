@@ -665,21 +665,7 @@ function migratePosts($smf, $fla, $api)
         LEFT JOIN
             `flarum_migrated_users` u ON t.ID_MEMBER_STARTED = u.smf_id
         WHERE t.ID_BOARD not in ('.implode(',', $skipBoards).')
-        -- AND t.ID_TOPIC in (228,471,499,1039,1687,1693,9855,15626,17729,26865,27624,27647,27603,27823)
-        -- AND t.ID_TOPIC > 27000 OR t.ID_TOPIC in (228,298,471,499,832,1039,1412,1687,6788,11071,1693,6519,9855,14571,14641,14790,14833,14981,15260,15380,15559,15626,17143,17225,17526,17729,18155,20607,21389,26266,26636,26738,26865,26944,26962) -- some test- and edge-cases with current topics
-        -- AND t.ID_TOPIC in (298)
-        -- AND t.ID_TOPIC in (499,11071)
-        -- AND t.ID_TOPIC in (11071)
-        -- AND t.ID_TOPIC in (832,1412,14641,14981,21389,26636,27160,27430)
-        -- AND t.ID_TOPIC in (27160)
-        -- AND t.ID_TOPIC in (27647)
-        -- AND t.ID_TOPIC in (27930)
-        -- AND t.ID_TOPIC in (228,9855,26266,26944,26962,27930)
-        -- AND t.ID_TOPIC in (6519,1013,3574,3586,9985,9986,9987,13281,14269,26069,26325,26403,26448,26477,26636,27160,27647) -- tests to convert internal links
-        -- AND t.ID_TOPIC in (6519,13281,14269,26069,26325,26403,26448,26477)
-        -- AND t.ID_TOPIC in (3574,3586,26636,27160,27647)
-        -- AND t.ID_TOPIC in (14571,14790,14833,15260,15380,15559,17225,17526,18155,20607,27160) -- transfer some special file attachments
-        -- AND t.ID_TOPIC >= 27900
+        -- AND t.ID_TOPIC in (123,456) -- insert IDs to test only specific topics
         ORDER BY m.posterTime, t.ID_TOPIC';
     $topics = $smf->query($sql);
     $topics->setFetchMode(PDO::FETCH_OBJ);

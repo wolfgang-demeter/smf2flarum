@@ -55,6 +55,16 @@ Run the complete migration without confirming each step beforehand.
 php ./migrate.php --runall
 ```
 
+If everything works as exptected, the output should look something like that:
+```bash
+Migrating categories: 8/8 (100%)
+Migrating boards: 30/30 (100%)
+Migrating users: 379/379 (100%)
+Migrating topic 25330/25330 (100%) // Topic ID: 28012 // number of Posts: 2/2 (100%) // Slug: last-topic-migrated
+Update last read for user with ID 761 on discussion with ID 26717
+Update discussion & post counter for user with ID 770
+```
+
 ## Required Extensions
 The following extensions to Flarum are necessary for the migration script.
 
