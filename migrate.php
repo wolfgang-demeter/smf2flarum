@@ -92,13 +92,13 @@ SQL;
     // print_r($postsNumber);
 
     // Start the migration process
-    // if (confirm("Categories"))          migrateCategories($smf, $fla, $api);
-    // if (confirm("Boards"))              migrateBoards($smf, $fla, $api);
-    // if (confirm("Users"))               migrateUsers($smf, $fla, $api);
-    // if (confirm("Posts"))               migratePosts($smf, $fla, $api);
+    if (confirm("Categories"))          migrateCategories($smf, $fla, $api);
+    if (confirm("Boards"))              migrateBoards($smf, $fla, $api);
+    if (confirm("Users"))               migrateUsers($smf, $fla, $api);
+    if (confirm("Posts"))               migratePosts($smf, $fla, $api);
     if (confirm("Post IPs"))            migratePostIPs($smf, $fla, $api);
-    // if (confirm("Last Read Position"))  updateUserLastRead($smf, $fla, $api);
-    // if (confirm("User Counters"))       updateUserCounters($smf, $fla, $api);
+    if (confirm("Last Read Position"))  updateUserLastRead($smf, $fla, $api);
+    if (confirm("User Counters"))       updateUserCounters($smf, $fla, $api);
 }
 catch (PDOException $e)
 {
