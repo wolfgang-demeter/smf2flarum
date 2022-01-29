@@ -92,12 +92,13 @@ SQL;
     // print_r($postsNumber);
 
     // Start the migration process
-    if (confirm("Categories"))          migrateCategories($smf, $fla, $api);
-    if (confirm("Boards"))              migrateBoards($smf, $fla, $api);
-    if (confirm("Users"))               migrateUsers($smf, $fla, $api);
-    if (confirm("Posts"))               migratePosts($smf, $fla, $api);
-    if (confirm("Last Read Position"))  updateUserLastRead($smf, $fla, $api);
-    if (confirm("User Counters"))       updateUserCounters($smf, $fla, $api);
+    // if (confirm("Categories"))          migrateCategories($smf, $fla, $api);
+    // if (confirm("Boards"))              migrateBoards($smf, $fla, $api);
+    // if (confirm("Users"))               migrateUsers($smf, $fla, $api);
+    // if (confirm("Posts"))               migratePosts($smf, $fla, $api);
+    if (confirm("Post IPs"))            migratePostIPs($smf, $fla, $api);
+    // if (confirm("Last Read Position"))  updateUserLastRead($smf, $fla, $api);
+    // if (confirm("User Counters"))       updateUserCounters($smf, $fla, $api);
 }
 catch (PDOException $e)
 {
@@ -894,6 +895,36 @@ SQL;
         );
         $update_topic->execute($data);
         // $update_topic->debugDumpParams();
+    }
+
+    echo "\n";
+}
+
+/**
+ * extra Function to migrate forgotten IP-addresses on initial migration
+ * --> this should have been part of migratePosts()
+ */
+function migratePostIPs($smf, $fla, $api)
+{
+    // Counters for displaying the progress info
+    $postsTotal = $smf->query('SELECT COUNT(*) FROM `smf_messages`')->fetchColumn();
+    $postsDone = 0;
+
+    $sql = <<<SQL
+            SELECT m.ID_MSG, m.posterIP
+            FROM `smf_messages` m
+            ORDER BY m.ID_MSG;
+SQL;
+    $postIPs = $smf->query($sql);
+    $postIPs->setFetchMode(PDO::FETCH_OBJ);
+
+    // Migrate Post IPs
+    while ($postIP = $postIPs->fetch()) {
+        // Update and display the progess info
+        $postsDone++;
+        echo "\033[2K\r"; // clear line
+        echo "Migrating post IP address ".$postsDone."/".$postsTotal." (".((int) ($postsDone / $postsTotal * 100))."%) for post id: ".$postIP->ID_MSG."\r";
+        $fla->query("UPDATE `posts` SET `ip_address` = '$postIP->posterIP' WHERE `posts`.`ip_address` IS NULL AND `posts`.`id` = $postIP->ID_MSG");
     }
 
     echo "\n";
